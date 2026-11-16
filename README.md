@@ -4,6 +4,8 @@
 
 This project started as a personal helper to speed up my university assignments and gradually evolved into a small TUI toolkit. It abstracts low level terminal handling across **Windows**, **Linux**, and **macOS** without requiring external dependencies like `ncurses`.
 
+![Demo Preview](examples/basic_menu.gif)
+
 
 ## Features
 
