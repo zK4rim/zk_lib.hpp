@@ -800,12 +800,12 @@ Can operate as a selection dialog or a loading indicator
 
 @param message Message displayed inside the dialog. Accepts multiple lines with '\\n'
 @param options List of selectable options
-@param loading_mode If should display a loading animation instead of options
+@param loading_mode If should display a loading animation instead of options (DECORATIVE ONLY)
 @param loading_sec Duration of the loading animation in seconds
 
 @return The index of the selected option. Returns 0 in loading mode
 */
-int dialog(std::string message, std::vector<std::string> options, bool loading_mode = false, size_t loading_sec = 0)
+int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool loading_mode = false, size_t loading_sec = 0)
 {
     // Update terminal size
 
@@ -979,7 +979,7 @@ bool confirm(std::string message)
 
 @return true if the user confirms exit, otherwise false
 */
-bool exit_menu_execution()
+bool exit_program_confirm()
 {
     return confirm("Exit the program?");
 }
@@ -1663,7 +1663,7 @@ class menu
 
         @param title Title to be displayed in the menu
         */
-        menu(std::string title) { menu_title = title; }
+        menu(std::string title) : menu_title(std::move(title)), menu_width(string_length(menu_title)) {}
 
         /*
         @brief Adds a button to the menu, it can be activated with intro
@@ -1804,7 +1804,7 @@ class menu
                 }
 
                 // Footer
-                std::string footer_str = "Navegación: " + accent_color + "← ↑ → ↓" + c_gray + " | " + accent_color + "↲" + f_clear;
+                std::string footer_str = "Navigation: " + accent_color + "← ↑ → ↓" + c_gray + " | " + accent_color + "↲" + f_clear;
                 std::string footer_sep = string_repeat("─", string_length(footer_str) + 6);
                 frame << "\e[K\n" << center(footer_sep) << "\e[K\n" << center(footer_str) << "\e[K\n";
 
@@ -1843,15 +1843,6 @@ class menuManager
 
     public:
         /*
-        @brief Starts the execution of the menu system. At least one menu has to be in the stack
-        */
-        void exec()
-        {
-            while (menu_stack.size() > 0) { menu_stack.top()->show(); }
-            clear();
-        }
-
-        /*
         @brief Pushes a submenu onto the stack and starts its execution
 
         @param submenu Reference to the submenu to execute
@@ -1880,6 +1871,19 @@ class menuManager
                 menu_stack.top()->close();
                 menu_stack.pop();
             }
+        }
+
+        /*
+        @brief Starts the execution of the menu system. At least one menu has to be in the stack
+
+        @param starting_menu Reference to the first menu to execute
+        */
+        void exec(menu& starting_menu)
+        {
+            submenu_goto(starting_menu);
+
+            while (menu_stack.size() > 0) { menu_stack.top()->show(); }
+            clear();
         }
 };
 
