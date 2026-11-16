@@ -722,7 +722,7 @@ std::string string_upper(const std::string &str)
 
 @param s UTF-8 string
 
-@return The last UTF-8 char or an empty string if que input is empty
+@return The last UTF-8 char or an empty string if the input is empty
 */
 static std::string utf8_last_char(const std::string &s)
 {
@@ -750,7 +750,7 @@ static void utf8_pop_back(std::string &s)
 
 @param s UTF-8 string to modify
 
-@return The removed UTF-8 char, or an empty string if que input is empty
+@return The removed UTF-8 char, or an empty string if the input is empty
 */
 static std::string utf8_pop_front(std::string &s)
 {

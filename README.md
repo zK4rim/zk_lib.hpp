@@ -15,5 +15,24 @@ This project started as a personal helper to speed up my university assignments 
 * **ANSI & UTF-8 Utilities:** 24-bit TrueColor RGB support, cursor positioning, and string helpers that accurately count multi-byte UTF-8 characters while ignoring ANSI escape codes.
 * **Zero Dependencies:** Just drop a single `.hpp` file into your project and compile.
 
+## Examples
+
+The [`examples/`](examples/) directory contains standalone programs that demonstrate the library:
+
+* [`basic_menu.cpp`](examples/basic_menu.cpp): a small menu and widget showcase.
+* [`games.cpp`](examples/games.cpp): a menu-driven collection of Tic-Tac-Toe, Minesweeper, and Wordle.
+
+Both examples require a C++14-compatible compiler. From the repository root, build and run them with:
+
+```sh
+g++ -std=c++14 examples/basic_menu.cpp -o basic_menu
+./basic_menu
+
+g++ -std=c++14 examples/games.cpp -o games
+./games
+```
+
+Run them in a UTF-8 terminal with ANSI color support. Use the arrow keys to navigate menus; the in-game screens show the controls for each game.
+
 ## Licence
 Distributed under the MIT Licence
