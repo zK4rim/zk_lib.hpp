@@ -13,7 +13,7 @@ int main()
     // Menu declaration
     //
 
-    menuManager manager;
+    menu_manager manager;
     menu main_menu("Main Menu");
     menu widgets_menu("Widgets Showcase");
 

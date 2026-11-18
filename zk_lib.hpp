@@ -1834,7 +1834,7 @@ class menu
         }
 };
 
-class menuManager
+class menu_manager
 {
     private:
         // Submenu stack

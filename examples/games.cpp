@@ -34,7 +34,7 @@ int main()
 //
 
 // Shared by the main menu and the game submenus.
-menuManager manager;
+menu_manager manager;
 
 menu
 menu_main         ("MAIN MENU"),
