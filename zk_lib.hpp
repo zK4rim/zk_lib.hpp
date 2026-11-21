@@ -1221,6 +1221,7 @@ Supports cursor navigation, UTF-8 input, pasword masking, default text and cente
 @param password_mode Whether the typed chars should be hidden
 @param menu_mode Whether the input is displayed inside a centered dialog
 @param default_text Initial text shown in the input field
+@param dialog_width Width of the input dialog; 0 selects it automatically
 
 @return The entered text
 */
@@ -1232,7 +1233,8 @@ std::string input(
     size_t centered          = 0,
     bool password_mode       = false,
     bool menu_mode           = false,
-    std::string default_text = ""
+    std::string default_text = "",
+    size_t dialog_width      = 0
 ) {
     // Variables
 
@@ -1270,10 +1272,12 @@ std::string input(
 
             size_t prompt_length = string_length(prompt);
             size_t input_capacity = std::max(size_t(1), max_length);
-            size_t requested_width = std::max(size_t(24), prompt_length + input_capacity);
+            size_t requested_width = dialog_width > 0
+                ? std::max(dialog_width, prompt_length + 1)
+                : std::max(size_t(24), prompt_length + input_capacity);
             size_t max_dialog_width = std::max(size_t(1), terminal_width > 8 ? terminal_width - 8 : terminal_width);
-            size_t dialog_width = std::min(requested_width, max_dialog_width);
-            size_t visible_width = dialog_width > prompt_length ? dialog_width - prompt_length : 1;
+            size_t actual_dialog_width = std::min(requested_width, max_dialog_width);
+            size_t visible_width = actual_dialog_width > prompt_length ? actual_dialog_width - prompt_length : 1;
 
             size_t cursor_position = string_length(text_left);
             size_t visible_start = cursor_position >= visible_width
@@ -1285,7 +1289,7 @@ std::string input(
             lines.push_back(prompt_color + prompt + f_clear + input_color + visible_input + f_clear);
 
             size_t input_cursor_offset = prompt_length + cursor_position - visible_start;
-            draw_dialog_frame(lines, {}, dialog_width, 0, false, "", true, input_cursor_offset);
+            draw_dialog_frame(lines, {}, actual_dialog_width, 0, false, "", true, input_cursor_offset);
             output.show(false);
         }
         else
@@ -1376,6 +1380,8 @@ std::string input(
         if (key == key_intro) break;
 
         // ESC pressed
+
+        if (!menu_mode and key == key_esc) continue;
 
         if (menu_mode and key == key_esc)
         {
@@ -1675,9 +1681,12 @@ class textfield : public widget
     std::string &value;
     std::string col;
     bool pass_mode;
+    size_t dialog_width;
+    size_t max_length;
 
     public:
-        textfield(std::string text, std::string &value, bool pass_mode = false) : widget(text), value(value), pass_mode(pass_mode) {}
+        textfield(std::string text, std::string &value, bool pass_mode = false, size_t dialog_width = 0, size_t max_length = 64)
+            : widget(text), value(value), pass_mode(pass_mode), dialog_width(dialog_width), max_length(max_length) {}
 
         void draw(bool selected, std::string color, size_t width, std::ostream &out) override
         {
@@ -1696,7 +1705,7 @@ class textfield : public widget
         
         void on_enter() override
         {
-            value = input(label + ": ", c_gray, col, 64, terminal_width, pass_mode, true, value);
+            value = input(label + ": ", c_gray, col, max_length, terminal_width, pass_mode, true, value, dialog_width);
         }
 };
 
@@ -1893,8 +1902,13 @@ class menu
         @param text Text to display in the textfield
         @param value Reference to the variable that will store the textfield value
         @param pass_mode Whether the textfield should display characters as asterisks
+        @param dialog_width Width of the input dialog; 0 chooses the width automatically
+        @param max_length Maximum number of UTF-8 characters accepted
         */
-        void add_textfield(std::string text, std::string &value, bool pass_mode = false) { add<textfield>(text, value, pass_mode); }
+        void add_textfield(std::string text, std::string &value, bool pass_mode = false, size_t dialog_width = 0, size_t max_length = 64)
+        {
+            add<textfield>(text, value, pass_mode, dialog_width, max_length);
+        }
 
         /*
         @brief Adds a label to the menu

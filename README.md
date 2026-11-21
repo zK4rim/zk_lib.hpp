@@ -137,7 +137,8 @@ std::string input(
     size_t centered          = 0,
     bool password_mode       = false,
     bool menu_mode           = false,
-    std::string default_text = ""
+    std::string default_text = "",
+    size_t dialog_width      = 0
 );
 ```
 
@@ -153,6 +154,7 @@ It is blocking, returns the entered text, and automatically shows and hides the 
 | `password_mode` | `false` | Displays typed characters as bullets (`•`) while returning the original text. |
 | `menu_mode` | `false` | Displays the field in a centered dialog and restores the previous frame afterward. |
 | `default_text` | `""` | Initial value placed in the input field. |
+| `dialog_width` | `0` | Interior width of the dialog in menu mode; `0` chooses the width automatically. |
 
 Keyboard controls:
 
@@ -296,7 +298,7 @@ Available menu methods:
 * `add_selector(text, options, selected_index)`: provides an options selector controlled with Left / Right.
 * `add_slider(text, value, min, max)`: provides an integer slider controlled with Left / Right.
 * `add_checkbox(text, checked)`: provides a boolean checkbox toggled with Enter.
-* `add_textfield(text, value, password_mode = false)`: opens an editable UTF-8 dialog when Enter is pressed.
+* `add_textfield(text, value, password_mode = false, dialog_width = 0, max_length = 64)`: opens an editable UTF-8 dialog when Enter is pressed. A width of `0` selects it automatically.
 * `add_label(text_function, color = "", use_accent = false)`: draws a dynamic text label updated before every frame.
 * `add_br(lines = 1)`: adds blank lines.
 * `add_separator(line_width = 20, pattern = "─", color = c_gray)`: adds a decorative separator.
@@ -307,6 +309,8 @@ Available menu methods:
 * `set_on_escape(callback)`: handle Escape for the menu.
 * `close()`: stop the menu loop.
 * `show()`: render and run the menu until it is closed.
+
+For example, `menu.add_textfield("Name", name, false, 48, 24)` sets the dialog's interior width to 48 characters and the input limit to 24 UTF-8 characters. The dialog width is capped to fit the terminal.
 
 <!-- GIF placeholder: interactive menu widgets -->
 
