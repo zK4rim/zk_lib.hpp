@@ -1842,6 +1842,7 @@ class menu
         }
 
         std::function<void()> on_escape = nullptr;
+        std::function<void()> on_update = nullptr;
 
     public:
         /*
@@ -1944,6 +1945,13 @@ class menu
         void set_on_escape(std::function<void()> call) { on_escape = call; }
 
         /*
+        @brief Sets the function to be called on every menu update, before drawing
+
+        @param call Function to be called
+        */
+        void set_on_update(std::function<void()> call) { on_update = call; }
+
+        /*
         @brief Set an accent color to the menu
 
         @param color Color code in ANSI format
@@ -1973,6 +1981,9 @@ class menu
             
             while (executing)
             {
+                if (on_update) on_update();
+                if (!executing) break;
+
                 // Update terminal size
                 terminal_width  = get_terminal_width();
                 terminal_height = get_terminal_height();
