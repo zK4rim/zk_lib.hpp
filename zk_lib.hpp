@@ -856,6 +856,24 @@ static std::string utf8_pop_front(std::string &s)
 }
 
 /*
+@brief Returns a substring of a UTF-8 string, starting at a specified character index and with a specified length
+@param text UTF-8 string to slice
+@param start Starting character index (0-based)
+@param length Number of characters to include in the slice
+@return A new string containing the specified slice of the input string
+*/
+static std::string utf8_slice(std::string text, size_t start, size_t length)
+{
+    for (size_t i = 0; i < start && !text.empty(); i++) utf8_pop_front(text);
+
+    std::string result;
+    for (size_t i = 0; i < length && !text.empty(); i++)
+        result += utf8_pop_front(text);
+
+    return result;
+}
+
+/*
 @brief Waits for the user to press any key
 
 Displays a centered message at the bottom of the terminal and
@@ -880,6 +898,93 @@ void wait(std::string message = "Press any key to continue")
 
     _getch();
     return;
+}
+
+/*
+@brief Draws a dialog frame with the specified content and options
+@param lines Lines of text to display inside the dialog
+@param options List of selectable options to display at the bottom of the dialog
+@param dialog_width Width of the dialog in characters
+@param selected_option Index of the currently selected option
+@param loading_mode If true, displays a loading animation instead of options
+@param loading_figure The character to use for the loading animation
+@param show_input_cursor If true, shows a cursor for text input
+@param input_cursor_offset The offset of the input cursor from the left edge of the dialog
+*/
+static void draw_dialog_frame(
+    const std::vector<std::string> &lines,
+    const std::vector<std::string> &options,
+    size_t dialog_width,
+    int selected_option,
+    bool loading_mode = false,
+    const std::string &loading_figure = "",
+    bool show_input_cursor = false,
+    size_t input_cursor_offset = 0
+)
+{
+    size_t dialog_height = loading_mode
+        ? lines.size()
+        : lines.size() + options.size() + 1;
+
+    std::string draw_top = string_repeat("━", dialog_width + 2); draw_top = " ┏" + draw_top + "┓  ";
+    std::string draw_mid = string_repeat(" ", dialog_width + 2); draw_mid = " ┃" + draw_mid + "┃" + c_gray + "░ " + f_clear;
+    std::string draw_bot = string_repeat("━", dialog_width + 2); draw_bot = " ┗" + draw_bot + "┛" + c_gray + "░ " + f_clear;
+    std::string draw_shw = string_repeat("░", dialog_width + 4); draw_shw = c_gray + "  " + draw_shw + " " + f_clear;
+
+    cursor_move_to((terminal_width / 2) - (dialog_width / 2) - 2, (terminal_height / 2) - (dialog_height / 2) - 3);
+    cursor_save_pos();
+
+    output << draw_top << '\n';
+
+    for (size_t i = 0; i < dialog_height; i++)
+    {
+        cursor_load_pos(); cursor_move_down(i + 1);
+        output << draw_mid << '\n';
+    }
+
+    cursor_load_pos(); cursor_move_down(dialog_height + 1);
+    output << draw_bot << '\n';
+    cursor_load_pos(); cursor_move_down(dialog_height + 2);
+    output << draw_shw << '\n';
+
+    cursor_load_pos();
+    for (auto &&line : lines)
+    {
+        cursor_move_down(1); cursor_to_begin_line();
+        cursor_move_right((terminal_width / 2) - (dialog_width / 2));
+
+        if (loading_mode)
+            output << c_white << loading_figure << " " << c_gray;
+
+        output << line << (loading_mode ? f_clear : "");
+    }
+
+    if (!loading_mode)
+    {
+        cursor_move_down(1);
+        size_t i = 0;
+        for (auto &&option : options)
+        {
+            cursor_move_down(1); cursor_to_begin_line();
+
+            size_t option_width  = string_length(option);
+            size_t dialog_start  = (terminal_width / 2) - (dialog_width / 2);
+            size_t center_offset = (dialog_width - option_width) / 2;
+
+            cursor_move_right(dialog_start + center_offset);
+            output << (selected_option == int(i) ? ("\e[4m" + option + f_clear) : option);
+
+            i++;
+        }
+    }
+
+    if (show_input_cursor)
+    {
+        cursor_load_pos();
+        cursor_move_down(1); cursor_to_begin_line();
+        cursor_move_right((terminal_width / 2) - (dialog_width / 2));
+        cursor_move_right(input_cursor_offset);
+    }
 }
 
 /*
@@ -914,28 +1019,15 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
     figures.push_back("𜺈");
     figures.push_back("𜺄");
 
-    // Calculate dialog window height
+    // Calculate dialog window width
 
     std::vector<std::string> lines = string_split(message, '\n');
 
-    size_t dialog_height = 0;
-    if (loading_mode)
-        dialog_height = lines.size();
-    else
-        dialog_height = (lines.size() + options.size() + 1);
-    
     size_t dialog_width = 0;
     for (auto &&line : lines)     if (string_length(line)   > dialog_width) dialog_width = string_length(line);
     for (auto &&option : options) if (string_length(option) > dialog_width) dialog_width = string_length(option);
 
     if (loading_mode) dialog_width += 2;
-
-    // Prerender dialog
-
-    std::string draw_top = string_repeat("━", dialog_width + 2); draw_top = " ┏" + draw_top + "┓  ";
-    std::string draw_mid = string_repeat(" ", dialog_width + 2); draw_mid = " ┃" + draw_mid + "┃" + c_gray + "░ " + f_clear; 
-    std::string draw_bot = string_repeat("━", dialog_width + 2); draw_bot = " ┗" + draw_bot + "┛" + c_gray + "░ " + f_clear;
-    std::string draw_shw = string_repeat("░", dialog_width + 4); draw_shw = c_gray + "  " + draw_shw + " " + f_clear;
 
     int selected_option = 0;
 
@@ -943,40 +1035,7 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
 
     while (true)
     {
-        // Move cursor to the start
-        cursor_move_to((terminal_width / 2) - (dialog_width / 2) - 2, (terminal_height / 2) - (dialog_height / 2) - 3);
-
-        // Save start position
-        cursor_save_pos();
-
-        // Draw borders
-
-        output << draw_top << '\n';
-        
-        for (size_t i = 0; i < dialog_height; i++)
-        {
-            cursor_load_pos(); cursor_move_down(i + 1);
-            output << draw_mid << '\n';
-        }
-
-        cursor_load_pos(); cursor_move_down(dialog_height + 1);
-        output << draw_bot << '\n';
-        cursor_load_pos(); cursor_move_down(dialog_height + 2);
-        output << draw_shw << '\n';
-
-        // Draw text
-
-        cursor_load_pos(); 
-        for (auto &&line : lines)
-        {
-            cursor_move_down(1); cursor_to_begin_line();
-            cursor_move_right((terminal_width / 2) - (dialog_width / 2));
-
-            if (loading_mode)
-                output << c_white << figures[current_figure] << " " << c_gray;
-            
-            output << line << (loading_mode ? f_clear : "");
-        }
+        draw_dialog_frame(lines, options, dialog_width, selected_option, loading_mode, figures[current_figure]);
 
         // Loading mode
 
@@ -1012,25 +1071,6 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
             continue;
         }
         
-        // Draw options
-
-        cursor_move_down(1);
-        size_t i = 0;
-        for (auto &&option : options)
-        {
-            cursor_move_down(1); cursor_to_begin_line();
-
-            size_t option_width  = string_length(option);
-            size_t dialog_start  = (terminal_width / 2) - (dialog_width / 2);
-            size_t center_offset = (dialog_width - option_width) / 2;
-
-            cursor_move_right(dialog_start + center_offset);
-
-            output << (selected_option == i ? ("\e[4m" + option + f_clear) : option);
-
-            i++;
-        }
-
         output.show(false);
 
         // Get key
@@ -1177,7 +1217,7 @@ Supports cursor navigation, UTF-8 input, pasword masking, default text and cente
 @param max_length Maximum allowed input length
 @param centered Width used to horizontally center the input line
 @param password_mode Whether the typed chars should be hidden
-@param menu_mode Whether the input is displayed in menu mode
+@param menu_mode Whether the input is displayed inside a centered dialog
 @param default_text Initial text shown in the input field
 
 @return The entered text
@@ -1220,49 +1260,77 @@ std::string input(
         std::string pass_text  = string_repeat("•", string_length(plain_text));
         
         std::string current_input = password_mode ? pass_text : plain_text;
-        
-        std::string full_line = prompt + current_input;
-        
-        // Calculate offset for centering
 
-        size_t leading_spaces = 0;
-        if (centered > 0 and centered > string_length(full_line)) {
-            leading_spaces = (centered / 2) - (string_length(full_line) / 2);
+        if (menu_mode)
+        {
+            terminal_height = get_terminal_height();
+            terminal_width  = get_terminal_width();
+
+            size_t prompt_length = string_length(prompt);
+            size_t input_capacity = std::max(size_t(1), max_length);
+            size_t requested_width = std::max(size_t(24), prompt_length + input_capacity);
+            size_t max_dialog_width = std::max(size_t(1), terminal_width > 8 ? terminal_width - 8 : terminal_width);
+            size_t dialog_width = std::min(requested_width, max_dialog_width);
+            size_t visible_width = dialog_width > prompt_length ? dialog_width - prompt_length : 1;
+
+            size_t cursor_position = string_length(text_left);
+            size_t visible_start = cursor_position >= visible_width
+                ? cursor_position - visible_width + 1
+                : 0;
+            std::string visible_input = utf8_slice(current_input, visible_start, visible_width);
+
+            std::vector<std::string> lines;
+            lines.push_back(prompt_color + prompt + f_clear + input_color + visible_input + f_clear);
+
+            size_t input_cursor_offset = prompt_length + cursor_position - visible_start;
+            draw_dialog_frame(lines, {}, dialog_width, 0, false, "", true, input_cursor_offset);
+            output.show(false);
         }
+        else
+        {
+            std::string full_line = prompt + current_input;
 
-        // Load saved position
+            // Calculate offset for centering
 
-        cursor_load_pos();
-        
-        // Clear current line
+            size_t leading_spaces = 0;
+            if (centered > 0 and centered > string_length(full_line)) {
+                leading_spaces = (centered / 2) - (string_length(full_line) / 2);
+            }
 
-        clear_line();
+            // Load saved position
 
-        // Print spaces for centering
+            cursor_load_pos();
 
-        for (size_t i = 0; i < leading_spaces; i++) output << ' ';
+            // Clear current line
 
-        // Print prompt
+            clear_line();
 
-        output << prompt_color << prompt << "\e[0m";
+            // Print spaces for centering
 
-        // Print user input
+            for (size_t i = 0; i < leading_spaces; i++) output << ' ';
 
-        output << input_color << current_input;
+            // Print prompt
 
-        // Load saved position
+            output << prompt_color << prompt << "\e[0m";
 
-        cursor_load_pos();
-        
-        // Calculate cursor offset
-        
-        size_t cursor_offset = leading_spaces + string_length(prompt) + string_length(text_left);
-        
-        // Move cursor i times to the right
+            // Print user input
 
-        for (size_t i = 0; i < cursor_offset; i++) cursor_move_right(1);
+            output << input_color << current_input;
 
-        output.show(!menu_mode);
+            // Load saved position
+
+            cursor_load_pos();
+
+            // Calculate cursor offset
+
+            size_t cursor_offset = leading_spaces + string_length(prompt) + string_length(text_left);
+
+            // Move cursor i times to the right
+
+            for (size_t i = 0; i < cursor_offset; i++) cursor_move_right(1);
+
+            output.show();
+        }
 
         // Get key
 
