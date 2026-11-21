@@ -185,6 +185,7 @@ out_stream output;
     const std::string key_left  = "\xE0\x4B";
 
     const std::string key_intro = "\r";
+    const std::string key_esc   = "\x1B";
 
     /*
     @brief Gets a key press from the user
@@ -360,6 +361,7 @@ out_stream output;
     const std::string key_left  = "\x1B[D";
 
     const std::string key_intro = "\n";
+    const std::string key_esc   = "\x1B";
 
     /*
     @brief Gets a key press from the user
@@ -1373,11 +1375,20 @@ std::string input(
 
         if (key == key_intro) break;
 
+        // ESC pressed
+
+        if (menu_mode and key == key_esc)
+        {
+            text_left = default_text;
+            text_right = "";
+            break;
+        }
+
         // TAB pressed (ignore)
 
         if (key == "\t") continue;
 
-        // Ingore up and down
+        // Ignore up and down
 
         if (key == key_up or key == key_down) continue;
         
@@ -1830,6 +1841,8 @@ class menu
             } while (!widgets[selected_option]->is_focusable());
         }
 
+        std::function<void()> on_escape = nullptr;
+
     public:
         /*
         @brief Menu constructor
@@ -1924,6 +1937,13 @@ class menu
         void set_ascii_title(std::vector<std::string> title) { ascii_title = title; menu_width = title[0].length(); }
 
         /*
+        @brief Set the function to be called when the escape key is pressed
+
+        @param call Function to be called
+        */
+        void set_on_escape(std::function<void()> call) { on_escape = call; }
+
+        /*
         @brief Set an accent color to the menu
 
         @param color Color code in ANSI format
@@ -2000,6 +2020,24 @@ class menu
 
                     if (key == key_up)   { move_selection(-1); }
                     if (key == key_down) { move_selection(1); }
+
+                    if (key == key_esc)
+                    {
+                        if (on_escape)
+                        {
+                            on_escape();
+                            clear();
+                            break;
+                        }
+                        else if (exit_program_confirm())
+                        {
+                            clear();
+                            close();
+                            break;
+                        }
+
+                        clear();
+                    }
                 }
 
                 sleep(33);
@@ -2027,6 +2065,18 @@ class menu_manager
             terminal_width  = get_terminal_width();
 
             if (!menu_stack.empty()) menu_stack.top()->close();
+
+            submenu.set_on_escape([this](){
+                if (menu_stack.size() > 1)
+                {
+                    submenu_return();
+                }
+                else if (exit_program_confirm())
+                {
+                    submenu_return();
+                }
+            });
+
             menu_stack.push(&submenu);
         }
 
