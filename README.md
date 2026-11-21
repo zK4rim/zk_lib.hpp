@@ -15,7 +15,19 @@ This project started as a personal helper to speed up my university assignments 
   * `button`, `selector`, `slider`, `checkbox`, `textfield` (with password masking), `progress_bar`, `text_label`, `separator`, and `spacer`.
 * **Dialogs & Prompts:** Centered selection dialogs, animated loading spinners, confirmation prompts, and UTF-8 aware inline text input.
 * **ANSI & UTF-8 Utilities:** 24-bit TrueColor RGB support, cursor positioning, and string helpers that accurately count multi-byte UTF-8 characters while ignoring ANSI escape codes.
+* **Buffered Output:** A shared `out_stream` buffers terminal output, displays complete frames, and can restore the last frame after a dialog or other overlay.
 * **Zero Dependencies:** Just drop a single `.hpp` file into your project and compile.
+
+## Buffered Output
+
+The shared `zk::output` stream can be used to compose a frame before displaying it:
+
+```cpp
+zk::output << "\e[H" << "Hello, terminal!";
+zk::output.show();
+```
+
+By default, `show()` remembers the displayed frame. `show_previous()` reprints it; `show(false)` displays an overlay without replacing the remembered frame. Dialogs and menu text fields use this behavior to restore the previous screen when they close.
 
 ## Examples
 

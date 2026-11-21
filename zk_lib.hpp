@@ -16,6 +16,90 @@
 #include <vector>
 #include <stack>
 
+namespace zk
+{
+
+class out_stream
+{
+    std::ostringstream frame_current, frame_previous;
+
+public:
+    /*
+    @brief Appends a value to the frame being built
+    */
+    template<typename T>
+    out_stream& operator<<(const T& value)
+    {
+        frame_current << value;
+        return *this;
+    }
+
+    out_stream& operator<<(std::ostream& (*manipulator)(std::ostream&))
+    {
+        manipulator(frame_current);
+        return *this;
+    }
+
+    out_stream& operator<<(std::ios_base& (*manipulator)(std::ios_base&))
+    {
+        manipulator(frame_current);
+        return *this;
+    }
+
+    /*
+    @brief Appends text to the frame being built
+    */
+    template<typename T>
+    void print(const T& text) { frame_current << text; }
+
+    /*
+    @brief Returns the stream used to build the current frame
+    */
+    std::ostream& stream() { return frame_current; }
+
+    /*
+    @brief Discards the frame being built without changing the last displayed frame
+    */
+    void clear_current()
+    {
+        frame_current.str("");
+        frame_current.clear();
+    }
+
+    /*
+    @brief Displays the current frame and optionally remembers it for later restoration
+    */
+    void show(bool remember = true)
+    {
+        const std::string frame = frame_current.str();
+        std::cout << frame << std::flush;
+        if (remember) frame_previous.str(frame);
+        clear_current();
+    }
+
+    /*
+    @brief Reprints the last remembered frame
+    */
+    void show_previous()
+    {
+        std::cout << frame_previous.str() << std::flush;
+    }
+
+    /*
+    @brief Clears both the current and remembered frames
+    */
+    void clear()
+    {
+        clear_current();
+        frame_previous.str("");
+        frame_previous.clear();
+    }
+};
+
+out_stream output;
+
+}
+
 // Multiplatform
 #ifdef _WIN32
 
@@ -32,14 +116,15 @@
     void init_program()
     {
         // Enter alternate screen mode
-        std::cout << "\e[?1049h";
+        output << "\e[?1049h";
 
         // Hide cursor
-        std::cout << "\e[?25l";
+        output << "\e[?25l";
 
         // Allow Unicode
         SetConsoleOutputCP(CP_UTF8);
         SetConsoleCP(CP_UTF8);
+        output.show();
 
         // Set random seed
         srand(time(0));
@@ -51,10 +136,11 @@
     void exit_program()
     {
         // Exit alternate screen mode
-        std::cout << "\e[?1049l";
+        output << "\e[?1049l";
 
         // Show cursor
-        std::cout << "\e[?25h";
+        output << "\e[?25h";
+        output.show();
     }
 
     /*
@@ -157,10 +243,11 @@
         raw_mode_active = true;
 
         // Enter alternate screen mode
-        std::cout << "\e[?1049h";
+        output << "\e[?1049h";
 
         // Hide cursor
-        std::cout << "\e[?25l";
+        output << "\e[?25l";
+        output.show();
 
         // Set random seed
         srand(time(0));
@@ -179,10 +266,11 @@
         }
 
         // Exit alternate screen mode
-        std::cout << "\e[?1049l";
+        output << "\e[?1049l";
 
         // Show cursor
-        std::cout << "\e[?25h";
+        output << "\e[?25h";
+        output.show();
     }
 
     /*
@@ -339,40 +427,40 @@ size_t terminal_width  = get_terminal_width();
 size_t terminal_height = get_terminal_height();
 
 // Erases the screen
-void clear() { std::cout << "\e[2J\e[H"; }
+void clear() { output << "\e[2J\e[H"; }
 
 // Clear the current line and move the cursor to the beginning of the line
-void clear_line() { std::cout << "\e[2K\r"; }
+void clear_line() { output << "\e[2K\r"; }
 
 // Save the cursor position on the screen
-void cursor_save_pos() { std::cout << "\e[s"; }
+void cursor_save_pos() { output << "\e[s"; }
 
 // Move the cursor to the saved position
-void cursor_load_pos() { std::cout << "\e[u"; }
+void cursor_load_pos() { output << "\e[u"; }
 
 // Move the cursor x lines up
-void cursor_move_up(size_t lines) { std::cout << "\e[" << std::to_string(lines) << "A"; }
+void cursor_move_up(size_t lines) { output << "\e[" << std::to_string(lines) << "A"; }
 
 // Move the cursor x lines down
-void cursor_move_down(size_t lines) { std::cout << "\e[" << std::to_string(lines) << "B"; }
+void cursor_move_down(size_t lines) { output << "\e[" << std::to_string(lines) << "B"; }
 
 // Move the cursor x columns to the right
-void cursor_move_right(size_t columns) { std::cout << "\e[" << std::to_string(columns) << "C"; }
+void cursor_move_right(size_t columns) { output << "\e[" << std::to_string(columns) << "C"; }
 
 // Move the cursor x columns to the left
-void cursor_move_left(size_t columns) { std::cout << "\e[" << std::to_string(columns) << "D"; }
+void cursor_move_left(size_t columns) { output << "\e[" << std::to_string(columns) << "D"; }
 
 // Move the cursor to a specific position
-void cursor_move_to(size_t x, size_t y) { std::cout << "\e[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
+void cursor_move_to(size_t x, size_t y) { output << "\e[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
 
 // Move the cursor to the beginning of the line
-void cursor_to_begin_line() { std::cout << "\r"; }
+void cursor_to_begin_line() { output << "\r"; }
 
 // Makes the cursor invisible
-void hide_cursor() { std::cout << "\e[?25l"; }
+void hide_cursor() { output << "\e[?25l"; }
 
 // Makes the cursor visible
-void show_cursor() { std::cout << "\e[?25h"; }
+void show_cursor() { output << "\e[?25h"; }
 
 /*
 @brief Limit the value within the min-max range
@@ -627,12 +715,12 @@ void print_title(std::vector<std::string> &lines, std::string color = "", bool c
     std::string separator = string_repeat("─", string_length(lines[0]));
 
     for (auto &&line : lines)
-        std::cout << color << (centered ? center(line) : line) << f_clear << '\n';
+        output << color << (centered ? center(line) : line) << f_clear << '\n';
     
     if (draw_separator)
-        std::cout << (centered ? center(separator) : separator) << "\n\n";
+        output << (centered ? center(separator) : separator) << "\n\n";
     
-    std::cout << std::flush;
+    output.show();
 }
 
 /*
@@ -647,12 +735,12 @@ void print_footer(std::string str)
     std::vector<std::string> lines = string_split(str, '\n');
 
     std::string separator = string_repeat("─", string_length(str) + 6);
-    std::cout << "\n" << center(separator) << "\n";
+    output << "\n" << center(separator) << "\n";
 
     for (auto &&line : lines)
-        std::cout << center(line) << "\n";
+        output << center(line) << "\n";
     
-    std::cout << std::flush;
+    output.show();
 }
 
 /*
@@ -779,15 +867,16 @@ void wait(std::string message = "Press any key to continue")
 {
     cursor_move_to(1, terminal_height);
 
-    int remaining = terminal_width - string_length(message);
+    int remaining = std::max(0, int(terminal_width) - int(string_length(message)));
     int left = remaining / 2;
     int right = remaining - left;
 
-    std::cout << color_rgb(255, 255, 255, true) << c_black << bold
+    output << color_rgb(255, 255, 255, true) << c_black << bold
         << string_repeat(" ", left)
         << message
         << string_repeat(" ", right)
-        << f_clear << std::flush;
+        << f_clear;
+    output.show();
 
     _getch();
     return;
@@ -862,18 +951,18 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
 
         // Draw borders
 
-        std::cout << draw_top << '\n';
+        output << draw_top << '\n';
         
         for (size_t i = 0; i < dialog_height; i++)
         {
             cursor_load_pos(); cursor_move_down(i + 1);
-            std::cout << draw_mid << '\n';
+            output << draw_mid << '\n';
         }
 
         cursor_load_pos(); cursor_move_down(dialog_height + 1);
-        std::cout << draw_bot << '\n';
+        output << draw_bot << '\n';
         cursor_load_pos(); cursor_move_down(dialog_height + 2);
-        std::cout << draw_shw << '\n';
+        output << draw_shw << '\n';
 
         // Draw text
 
@@ -884,9 +973,9 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
             cursor_move_right((terminal_width / 2) - (dialog_width / 2));
 
             if (loading_mode)
-                std::cout << c_white << figures[current_figure] << " " << c_gray;
+                output << c_white << figures[current_figure] << " " << c_gray;
             
-            std::cout << line << (loading_mode ? f_clear : "");
+            output << line << (loading_mode ? f_clear : "");
         }
 
         // Loading mode
@@ -895,11 +984,15 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
         {
             // Check time
 
-            if (elapsed_ms >= (loading_sec * 1000)) return 0;
+            if (elapsed_ms >= (loading_sec * 1000))
+            {
+                output.show_previous();
+                return 0;
+            }
 
             // Flush
 
-            std::cout << std::flush;
+            output.show(false);
             
             // Wait time
 
@@ -933,12 +1026,12 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
 
             cursor_move_right(dialog_start + center_offset);
 
-            std::cout << (selected_option == i ? ("\e[4m" + option + f_clear) : option);
+            output << (selected_option == i ? ("\e[4m" + option + f_clear) : option);
 
             i++;
         }
 
-        std::cout << std::flush;
+        output.show(false);
 
         // Get key
 
@@ -952,7 +1045,11 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
 
         // Return option
 
-        if (key == key_intro) return selected_option;
+        if (key == key_intro)
+        {
+            output.show_previous();
+            return selected_option;
+        }
     }
 }
 
@@ -1143,15 +1240,15 @@ std::string input(
 
         // Print spaces for centering
 
-        for (size_t i = 0; i < leading_spaces; i++) std::cout << ' ';
+        for (size_t i = 0; i < leading_spaces; i++) output << ' ';
 
         // Print prompt
 
-        std::cout << prompt_color << prompt << "\e[0m";
+        output << prompt_color << prompt << "\e[0m";
 
         // Print user input
 
-        std::cout << input_color << current_input;
+        output << input_color << current_input;
 
         // Load saved position
 
@@ -1165,7 +1262,7 @@ std::string input(
 
         for (size_t i = 0; i < cursor_offset; i++) cursor_move_right(1);
 
-        std::cout << std::flush;
+        output.show(!menu_mode);
 
         // Get key
 
@@ -1227,8 +1324,16 @@ std::string input(
 
     // Flush
 
-    if (!menu_mode) std::cout << "\n";
-    std::cout << std::flush;
+    if (!menu_mode)
+    {
+        output << "\n";
+        output.show();
+    }
+    else
+    {
+        output.show(false);
+        output.show_previous();
+    }
 
     // Return input
 
@@ -1385,7 +1490,7 @@ class widget
         virtual ~widget() = default;
 
         virtual bool is_focusable() const { return true; }
-        virtual void draw(bool selected, std::string color, size_t width, std::ostream &out = std::cout) = 0;
+        virtual void draw(bool selected, std::string color, size_t width, std::ostream &out = output.stream()) = 0;
         virtual void on_left() {}
         virtual void on_right() {}
         virtual void on_enter() {}
@@ -1533,7 +1638,7 @@ class text_label : public widget
 
         bool is_focusable() const override { return false; }
 
-        void draw(bool selected, std::string color, size_t width, std::ostream &out = std::cout) override
+        void draw(bool selected, std::string color, size_t width, std::ostream &out = output.stream()) override
         {
             std::string current_text = dynamic_text ? dynamic_text() : label;
             std::string active_color = use_accent ? color : custom_color;
@@ -1784,7 +1889,7 @@ class menu
                 terminal_width  = get_terminal_width();
                 terminal_height = get_terminal_height();
 
-                std::ostringstream frame;
+                std::ostream& frame = output.stream();
 
                 // Move cursor to (1,1)
                 frame << "\e[H";
@@ -1812,7 +1917,7 @@ class menu
                 frame << "\e[J";
 
                 // Print frame
-                std::cout << frame.str() << std::flush;
+                output.show();
 
                 // Get input
                 std::string key;
@@ -1884,6 +1989,7 @@ class menu_manager
 
             while (menu_stack.size() > 0) { menu_stack.top()->show(); }
             clear();
+            output.show();
         }
 };
 
