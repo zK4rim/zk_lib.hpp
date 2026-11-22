@@ -40,6 +40,7 @@ void input_environment()
         if (current_input == key_up)    current_input = "UP";
         if (current_input == key_down)  current_input = "DOWN";
         if (current_input == key_intro) current_input = "INTRO";
+        if (current_input == key_esc)   current_input = "ESC";
         
         output << center("Current Input: " + c_cyan + current_input + f_clear) << "\n\n";
 
@@ -53,7 +54,7 @@ void input_environment()
         
         output.show();
 
-        if (current_input == key_esc)
+        if (current_input == "ESC")
         {
             if (confirm("Exit testing environment?"))
                 break;
