@@ -370,10 +370,11 @@ manager.exec(main_menu);
 
 The [`examples/`](examples/) directory contains standalone programs that demonstrate the library:
 
-* [`basic_menu.cpp`](examples/basic_menu.cpp): a small menu and widget showcase.
+* [`basic_menu.cpp`](examples/basic_menu.cpp): a small menu showcase.
 * [`games.cpp`](examples/games.cpp): a menu-driven collection of Tic-Tac-Toe, Minesweeper, and Wordle.
+* [`all.cpp`](examples/all.cpp): a full feature showcase covering menus, widgets, dialogs, colors, strings, and math utilities.
 
-Both examples require a C++14-compatible compiler. From the repository root, build and run them with:
+The examples require a C++14-compatible compiler. From the repository root, build and run them with:
 
 ```sh
 g++ -std=c++14 examples/basic_menu.cpp -o basic_menu
@@ -381,6 +382,9 @@ g++ -std=c++14 examples/basic_menu.cpp -o basic_menu
 
 g++ -std=c++14 examples/games.cpp -o games
 ./games
+
+g++ -std=c++14 examples/all.cpp -o all
+./all
 ```
 
 Run them in a UTF-8 terminal with ANSI color support. Use the arrow keys to navigate menus; the in-game screens show the controls for each game.
