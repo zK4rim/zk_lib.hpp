@@ -383,8 +383,8 @@ g++ -std=c++14 examples/basic_menu.cpp -o basic_menu
 g++ -std=c++14 examples/games.cpp -o games
 ./games
 
-g++ -std=c++14 examples/showcase.cpp -o all
-./all
+g++ -std=c++14 examples/showcase.cpp -o showcase
+./showcase
 ```
 
 Run them in a UTF-8 terminal with ANSI color support. Use the arrow keys to navigate menus; the in-game screens show the controls for each game.
