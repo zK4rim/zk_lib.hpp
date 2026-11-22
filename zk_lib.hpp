@@ -1914,10 +1914,19 @@ class menu
         @brief Adds a label to the menu
 
         @param text Text to display in the label
-        @param color Color code in ANSI format
         @param use_accent Whether to use the accent color
+        @param color Color code in ANSI format
         */
-        void add_label(std::function<std::string()> text_fn, std::string color = "", bool use_accent = false) { add<text_label>(text_fn, color, use_accent); }
+        void add_label(std::string text, bool use_accent = false, std::string color = "") { add<text_label>(text, color, use_accent); }
+
+        /*
+        @brief Adds a label to the menu
+
+        @param text_fn Function that returns the text to display in the label
+        @param use_accent Whether to use the accent color
+        @param color Color code in ANSI format
+        */
+        void add_label(std::function<std::string()> text_fn, bool use_accent = false, std::string color = "") { add<text_label>(text_fn, color, use_accent); }
 
         /*
         @brief Adds a blank line to the menu
