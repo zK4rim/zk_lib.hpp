@@ -305,7 +305,7 @@ Available menu methods:
 * `add_progress(text, value, max)`: draws a read-only progress bar.
 * `set_ascii_title(lines)`: Sets an ASCII art title above the menu.
 * `set_color(color)` / `get_color()`: configure or retrieve the menu accent.
-* `set_on_update(callback)`: run a callback before every frame is drawn.
+* `on_loop(callback)`: run a callback before every frame is drawn.
 * `set_on_escape(callback)`: handle Escape for the menu.
 * `close()`: stop the menu loop.
 * `show()`: render and run the menu until it is closed.
@@ -330,7 +330,7 @@ For example, `menu.add_textfield("Name", name, false, 48, 24)` sets the dialog's
 
 #### Updating menu state
 
-Use `set_on_update()` to run a callback on each menu update, before the widgets are drawn:
+Use `on_loop()` to run a callback on each menu update, before the widgets are drawn:
 
 ```cpp
 int updates = 0;
@@ -339,7 +339,7 @@ menu status("Status");
 status.add_label([&updates]() {
     return "Updates: " + std::to_string(updates);
 });
-status.set_on_update([&updates]() {
+status.on_loop([&updates]() {
     ++updates;
 });
 ```

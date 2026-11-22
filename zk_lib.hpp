@@ -1972,7 +1972,7 @@ class menu
 
         @param call Function to be called
         */
-        void set_on_update(std::function<void()> call) { on_update = call; }
+        void on_loop(std::function<void()> call) { on_update = call; }
 
         /*
         @brief Set an accent color to the menu
