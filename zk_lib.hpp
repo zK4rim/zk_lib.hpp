@@ -96,7 +96,7 @@ public:
     }
 };
 
-out_stream output;
+inline out_stream output;
 
 }
 
@@ -116,10 +116,10 @@ out_stream output;
     void init_program()
     {
         // Enter alternate screen mode
-        output << "\e[?1049h";
+        output << "\x1B[?1049h";
 
         // Hide cursor
-        output << "\e[?25l";
+        output << "\x1B[?25l";
 
         // Allow Unicode
         SetConsoleOutputCP(CP_UTF8);
@@ -136,10 +136,10 @@ out_stream output;
     void exit_program()
     {
         // Exit alternate screen mode
-        output << "\e[?1049l";
+        output << "\x1B[?1049l";
 
         // Show cursor
-        output << "\e[?25h";
+        output << "\x1B[?25h";
         output.show();
     }
 
@@ -179,13 +179,13 @@ out_stream output;
 
     // Keys
 
-    const std::string key_up    = "\xE0\x48";
-    const std::string key_down  = "\xE0\x50";
-    const std::string key_right = "\xE0\x4D";
-    const std::string key_left  = "\xE0\x4B";
+    inline const std::string key_up    = "\xE0\x48";
+    inline const std::string key_down  = "\xE0\x50";
+    inline const std::string key_right = "\xE0\x4D";
+    inline const std::string key_left  = "\xE0\x4B";
 
-    const std::string key_intro = "\r";
-    const std::string key_esc   = "\x1B";
+    inline const std::string key_intro = "\r";
+    inline const std::string key_esc   = "\x1B";
 
     /*
     @brief Gets a key press from the user
@@ -195,12 +195,12 @@ out_stream output;
     std::string get_key(bool blocking = true)
     {
         // Non-blocking mode
-        if (!blocking and !_kbhit()) return "";
+        if (!blocking && !_kbhit()) return "";
 
         int chr = _getch();
 
         // Escape sequence detected
-        if (chr == 0 or chr == 224)
+        if (chr == 0 || chr == 224)
         {
             std::string seq;
             seq += char(chr);
@@ -228,8 +228,8 @@ out_stream output;
 
     namespace zk {
 
-    struct termios orig_termios;
-    bool raw_mode_active = false;
+    inline struct termios orig_termios;
+    inline bool raw_mode_active = false;
 
     /*
     @brief Initializes the terminal for raw input mode and sets up the environment for the program
@@ -244,10 +244,10 @@ out_stream output;
         raw_mode_active = true;
 
         // Enter alternate screen mode
-        output << "\e[?1049h";
+        output << "\x1B[?1049h";
 
         // Hide cursor
-        output << "\e[?25l";
+        output << "\x1B[?25l";
         output.show();
 
         // Set random seed
@@ -267,10 +267,10 @@ out_stream output;
         }
 
         // Exit alternate screen mode
-        output << "\e[?1049l";
+        output << "\x1B[?1049l";
 
         // Show cursor
-        output << "\e[?25h";
+        output << "\x1B[?25h";
         output.show();
     }
 
@@ -355,13 +355,13 @@ out_stream output;
 
     // Keys
 
-    const std::string key_up    = "\x1B[A";
-    const std::string key_down  = "\x1B[B";
-    const std::string key_right = "\x1B[C";
-    const std::string key_left  = "\x1B[D";
+    inline const std::string key_up    = "\x1B[A";
+    inline const std::string key_down  = "\x1B[B";
+    inline const std::string key_right = "\x1B[C";
+    inline const std::string key_left  = "\x1B[D";
 
-    const std::string key_intro = "\n";
-    const std::string key_esc   = "\x1B";
+    inline const std::string key_intro = "\n";
+    inline const std::string key_esc   = "\x1B";
 
     /*
     @brief Gets a key press from the user
@@ -370,7 +370,7 @@ out_stream output;
     */
     std::string get_key(bool blocking = true)
     {
-        if (!blocking and !has_input(0)) return "";
+        if (!blocking && !has_input(0)) return "";
 
         int chr = _getch();
         if (chr == -1) return "";
@@ -421,48 +421,48 @@ struct Vector2D
 
     bool operator==(const Vector2D& other) const
     {
-        return (x == other.x and y == other.y);
+        return (x == other.x && y == other.y);
     }
 };
 
-size_t terminal_width  = get_terminal_width();
-size_t terminal_height = get_terminal_height();
+inline size_t terminal_width  = get_terminal_width();
+inline size_t terminal_height = get_terminal_height();
 
 // Erases the screen
-void clear() { output << "\e[2J\e[H"; }
+void clear() { output << "\x1B[2J\x1B[H"; }
 
 // Clear the current line and move the cursor to the beginning of the line
-void clear_line() { output << "\e[2K\r"; }
+void clear_line() { output << "\x1B[2K\r"; }
 
 // Save the cursor position on the screen
-void cursor_save_pos() { output << "\e[s"; }
+void cursor_save_pos() { output << "\x1B[s"; }
 
 // Move the cursor to the saved position
-void cursor_load_pos() { output << "\e[u"; }
+void cursor_load_pos() { output << "\x1B[u"; }
 
 // Move the cursor x lines up
-void cursor_move_up(size_t lines) { output << "\e[" << std::to_string(lines) << "A"; }
+void cursor_move_up(size_t lines) { output << "\x1B[" << std::to_string(lines) << "A"; }
 
 // Move the cursor x lines down
-void cursor_move_down(size_t lines) { output << "\e[" << std::to_string(lines) << "B"; }
+void cursor_move_down(size_t lines) { output << "\x1B[" << std::to_string(lines) << "B"; }
 
 // Move the cursor x columns to the right
-void cursor_move_right(size_t columns) { output << "\e[" << std::to_string(columns) << "C"; }
+void cursor_move_right(size_t columns) { output << "\x1B[" << std::to_string(columns) << "C"; }
 
 // Move the cursor x columns to the left
-void cursor_move_left(size_t columns) { output << "\e[" << std::to_string(columns) << "D"; }
+void cursor_move_left(size_t columns) { output << "\x1B[" << std::to_string(columns) << "D"; }
 
 // Move the cursor to a specific position
-void cursor_move_to(size_t x, size_t y) { output << "\e[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
+void cursor_move_to(size_t x, size_t y) { output << "\x1B[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
 
 // Move the cursor to the beginning of the line
 void cursor_to_begin_line() { output << "\r"; }
 
 // Makes the cursor invisible
-void hide_cursor() { output << "\e[?25l"; }
+void hide_cursor() { output << "\x1B[?25l"; }
 
 // Makes the cursor visible
-void show_cursor() { output << "\e[?25h"; }
+void show_cursor() { output << "\x1B[?25h"; }
 
 /*
 @brief Limit the value within the min-max range
@@ -505,7 +505,7 @@ void wrap(int &value, int min, int max)
 @return true if the value is in range or false if is not
 */
 template<typename T>
-bool in_range(const T &value, T min, T max) { return (value >= min and value <= max); }
+bool in_range(const T &value, T min, T max) { return (value >= min && value <= max); }
 
 /*
 @brief Generates a random integer between a and b, inclusive
@@ -537,7 +537,7 @@ std::string color_rgb(int R, int G, int B, bool bg = false)
     clamp(R, 0, 255); clamp(G, 0, 255); clamp(B, 0, 255);
 
     // Format color
-    std::string formatted_color = bg ? "\e[48;2;" : "\e[38;2;";
+    std::string formatted_color = bg ? "\x1B[48;2;" : "\x1B[38;2;";
     formatted_color += std::to_string(R) + ";";
     formatted_color += std::to_string(G) + ";";
     formatted_color += std::to_string(B) + "m";
@@ -546,38 +546,38 @@ std::string color_rgb(int R, int G, int B, bool bg = false)
     return formatted_color;
 }
 
-const std::string f_clear     = "\e[0m";
+inline const std::string f_clear     = "\x1B[0m";
 
-const std::string bold        = "\e[1m";
-const std::string underline   = "\e[4m";
+inline const std::string bold        = "\x1B[1m";
+inline const std::string underline   = "\x1B[4m";
 
-const std::string c_white     = color_rgb(255, 255, 255);
-const std::string c_gray      = color_rgb(100, 100, 100);
-const std::string c_black     = color_rgb(  0,   0,   0);
+inline const std::string c_white     = color_rgb(255, 255, 255);
+inline const std::string c_gray      = color_rgb(100, 100, 100);
+inline const std::string c_black     = color_rgb(  0,   0,   0);
 
-const std::string c_green     = color_rgb( 92, 237, 124);
-const std::string c_cyan      = color_rgb( 92, 237, 210);
-const std::string c_blue      = color_rgb( 92, 152, 237);
-const std::string c_purple    = color_rgb(121,  92, 237);
-const std::string c_pink      = color_rgb(230,  92, 237);
-const std::string c_red       = color_rgb(237,  92, 121);
-const std::string c_orange    = color_rgb(237, 133,  92);
-const std::string c_yellow    = color_rgb(237, 215,  92);
-const std::string c_lime      = color_rgb(191, 237,  92);
+inline const std::string c_green     = color_rgb( 92, 237, 124);
+inline const std::string c_cyan      = color_rgb( 92, 237, 210);
+inline const std::string c_blue      = color_rgb( 92, 152, 237);
+inline const std::string c_purple    = color_rgb(121,  92, 237);
+inline const std::string c_pink      = color_rgb(230,  92, 237);
+inline const std::string c_red       = color_rgb(237,  92, 121);
+inline const std::string c_orange    = color_rgb(237, 133,  92);
+inline const std::string c_yellow    = color_rgb(237, 215,  92);
+inline const std::string c_lime      = color_rgb(191, 237,  92);
 
-const std::string c_bg_white  = color_rgb(255, 255, 255, true);
-const std::string c_bg_gray   = color_rgb(100, 100, 100, true);
-const std::string c_bg_black  = color_rgb(  0,   0,   0, true);
+inline const std::string c_bg_white  = color_rgb(255, 255, 255, true);
+inline const std::string c_bg_gray   = color_rgb(100, 100, 100, true);
+inline const std::string c_bg_black  = color_rgb(  0,   0,   0, true);
 
-const std::string c_bg_green  = color_rgb( 92, 237, 124, true);
-const std::string c_bg_cyan   = color_rgb( 92, 237, 210, true);
-const std::string c_bg_blue   = color_rgb( 92, 152, 237, true);
-const std::string c_bg_purple = color_rgb(121,  92, 237, true);
-const std::string c_bg_pink   = color_rgb(230,  92, 237, true);
-const std::string c_bg_red    = color_rgb(237,  92, 121, true);
-const std::string c_bg_orange = color_rgb(237, 133,  92, true);
-const std::string c_bg_yellow = color_rgb(237, 215,  92, true);
-const std::string c_bg_lime   = color_rgb(191, 237,  92, true);
+inline const std::string c_bg_green  = color_rgb( 92, 237, 124, true);
+inline const std::string c_bg_cyan   = color_rgb( 92, 237, 210, true);
+inline const std::string c_bg_blue   = color_rgb( 92, 152, 237, true);
+inline const std::string c_bg_purple = color_rgb(121,  92, 237, true);
+inline const std::string c_bg_pink   = color_rgb(230,  92, 237, true);
+inline const std::string c_bg_red    = color_rgb(237,  92, 121, true);
+inline const std::string c_bg_orange = color_rgb(237, 133,  92, true);
+inline const std::string c_bg_yellow = color_rgb(237, 215,  92, true);
+inline const std::string c_bg_lime   = color_rgb(191, 237,  92, true);
 
 /*
 @brief Get the number of characters that contains a string (supporting UTF-8)
@@ -832,7 +832,7 @@ static std::string utf8_last_char(const std::string &s)
 {
     if (s.empty()) return "";
     int i = (int)s.length() - 1;
-    while (i > 0 and ((unsigned char)s[i] & 0xC0) == 0x80) --i;
+    while (i > 0 && ((unsigned char)s[i] & 0xC0) == 0x80) --i;
     return s.substr(i);
 }
 
@@ -845,7 +845,7 @@ static void utf8_pop_back(std::string &s)
 {
     if (s.empty()) return;
     int i = (int)s.length() - 1;
-    while (i > 0 and ((unsigned char)s[i] & 0xC0) == 0x80) --i;
+    while (i > 0 && ((unsigned char)s[i] & 0xC0) == 0x80) --i;
     s.erase(i);
 }
 
@@ -988,7 +988,7 @@ static void draw_dialog_frame(
             size_t center_offset = (dialog_width - option_width) / 2;
 
             cursor_move_right(dialog_start + center_offset);
-            output << (selected_option == int(i) ? ("\e[4m" + option + f_clear) : option);
+            output << (selected_option == int(i) ? ("\x1B[4m" + option + f_clear) : option);
 
             i++;
         }
@@ -1313,7 +1313,7 @@ std::string input(
             // Calculate offset for centering
 
             size_t leading_spaces = 0;
-            if (centered > 0 and centered > string_length(full_line)) {
+            if (centered > 0 && centered > string_length(full_line)) {
                 leading_spaces = (centered / 2) - (string_length(full_line) / 2);
             }
 
@@ -1331,7 +1331,7 @@ std::string input(
 
             // Print prompt
 
-            output << prompt_color << prompt << "\e[0m";
+            output << prompt_color << prompt << "\x1B[0m";
 
             // Print user input
 
@@ -1383,7 +1383,7 @@ std::string input(
         
         // Backspace pressed
 
-        if (key.size() == 1 and (key[0] == 8 or key[0] == 127))
+        if (key.size() == 1 && (key[0] == 8 || key[0] == 127))
         {
             if (string_length(text_left) > 0) utf8_pop_back(text_left);
             continue;
@@ -1395,9 +1395,9 @@ std::string input(
 
         // ESC pressed
 
-        if (!menu_mode and key == key_esc) continue;
+        if (!menu_mode && key == key_esc) continue;
 
-        if (menu_mode and key == key_esc)
+        if (menu_mode && key == key_esc)
         {
             text_left = default_text;
             text_right = "";
@@ -1410,7 +1410,7 @@ std::string input(
 
         // Ignore up and down
 
-        if (key == key_up or key == key_down) continue;
+        if (key == key_up || key == key_down) continue;
         
         // Append char to the buffer
 
@@ -1471,19 +1471,19 @@ bool is_valid_number(std::string str)
 
         // If there is - or + anywhere other than the beginning of the expression or the exponent, return false
 
-        if (char_in(chr, "-+") and i != 0 and i != i_exp) return false;
+        if (char_in(chr, "-+") && i != 0 && i != i_exp) return false;
 
         // If the dot has already been used, return false
 
-        if (chr == '.' and (!can_use_dot or !can_use_exp)) return false;
+        if (chr == '.' && (!can_use_dot || !can_use_exp)) return false;
 
         // If there is more than one exponent, return false
 
-        if (char_in(chr, "eE") and !can_use_exp) return false;
+        if (char_in(chr, "eE") && !can_use_exp) return false;
 
         // If there are no digits in the expression and the exponent has already started, return false
 
-        if (!has_digits and char_in(chr, "eE")) return false;
+        if (!has_digits && char_in(chr, "eE")) return false;
         
         // Turn off exponent flag at the beggining of the exponent
 
@@ -1499,7 +1499,7 @@ bool is_valid_number(std::string str)
 
         // If there are at least one digit at the exponent turn on exp_has_digits flag
 
-        if (char_in(chr, "0123456789") and !can_use_exp) exp_has_digits = true;
+        if (char_in(chr, "0123456789") && !can_use_exp) exp_has_digits = true;
         
         // Increase position counter
 
@@ -1512,7 +1512,7 @@ bool is_valid_number(std::string str)
 
     // If there are an exponent but not digits in there, return false
 
-    if (!exp_has_digits and !can_use_exp) return false;
+    if (!exp_has_digits && !can_use_exp) return false;
     
     // If this point is reached, it means there are no issues, return true
 
@@ -1605,7 +1605,7 @@ class button : public widget
         void draw(bool selected, std::string color, size_t width, std::ostream &out) override
         {
             std::string text = selected ? "▶▶ " + label + " ◀◀" : label;
-            out << (selected ? color : "") << center(text, width) << "\e[0m\e[K\n";
+            out << (selected ? color : "") << center(text, width) << "\x1B[0m\x1B[K\n";
         }
 
         void on_enter() override { call(); }
@@ -1622,7 +1622,7 @@ class selector : public widget
         void draw(bool selected, std::string color, size_t width, std::ostream &out) override
         {
             std::string text = selected ? "◀ " + label + ": < " + options[selected_option] + " > ▶" : label + ": < " + options[selected_option] + " >";
-            out << (selected ? color : "") << center(text, width) << "\e[0m\e[K\n";
+            out << (selected ? color : "") << center(text, width) << "\x1B[0m\x1B[K\n";
         }
 
         void on_left() override
@@ -1656,7 +1656,7 @@ class slider : public widget
 
             std::string text = label + " |" + bar + "| " + std::to_string(value);
             if (selected) text = "◀ " + text + " ▶";
-            out << (selected ? color : "") << center(text, width) << "\e[0m\e[K\n";
+            out << (selected ? color : "") << center(text, width) << "\x1B[0m\x1B[K\n";
         }
 
         void on_left() override
@@ -1681,7 +1681,7 @@ class checkbox : public widget
         {
             std::string text = std::string(checked ? "[✓]" : "[ ]") + " " + label;
             if (selected) text = "▶ " + text + " ◀";
-            out << (selected ? color : "") << center(text, width) << "\e[0m\e[K\n";
+            out << (selected ? color : "") << center(text, width) << "\x1B[0m\x1B[K\n";
         }
 
         void on_enter() override
@@ -1714,7 +1714,7 @@ class textfield : public widget
                 text = label + ": [ " + value + " ]";
             
             if (selected) text = "✎ " + text + " ✎";
-            out << (selected ? color : "") << center(text, width) << "\e[0m\e[K\n";
+            out << (selected ? color : "") << center(text, width) << "\x1B[0m\x1B[K\n";
         }
         
         void on_enter() override
@@ -1744,7 +1744,7 @@ class text_label : public widget
         {
             std::string current_text = dynamic_text ? dynamic_text() : label;
             std::string active_color = use_accent ? color : custom_color;
-            out << active_color << center(current_text, width) << f_clear << "\e[K\n";
+            out << active_color << center(current_text, width) << f_clear << "\x1B[K\n";
         }
 };
 
@@ -1803,7 +1803,7 @@ class progress_bar : public widget
             for (size_t i = 0; i < 10; i++) bar += (i < filled ? "━━" : "┄┄");
 
             std::string text = label + " " + color + "[" + bar + "]" + f_clear + " " + std::to_string(clamped) + "/" + std::to_string(max);
-            out << center(text, width) << "\e[0m\e[K\n";
+            out << center(text, width) << "\x1B[0m\x1B[K\n";
         }
 };
 
@@ -2014,7 +2014,7 @@ class menu
             clear();
 
             // Check for fist focusable widget
-            if (has_focusable_widgets() and !widgets[selected_option]->is_focusable()) move_selection(1);
+            if (has_focusable_widgets() && !widgets[selected_option]->is_focusable()) move_selection(1);
             
             while (executing)
             {
@@ -2028,15 +2028,15 @@ class menu
                 std::ostream& frame = output.stream();
 
                 // Move cursor to (1,1)
-                frame << "\e[H";
+                frame << "\x1B[H";
 
                 // ASCII title
                 for (auto &&line : ascii_title)
-                    frame << accent_color << center(line) << "\e[0m\e[K\n";
+                    frame << accent_color << center(line) << "\x1B[0m\x1B[K\n";
 
                 // ASCII title separator and menu title
-                frame << center(string_repeat("─", menu_width)) << "\e[K\n\e[K\n";
-                frame << center(menu_title) << "\e[K\n\e[K\n";
+                frame << center(string_repeat("─", menu_width)) << "\x1B[K\n\x1B[K\n";
+                frame << center(menu_title) << "\x1B[K\n\x1B[K\n";
 
                 // Draw widgets to the buffer
                 for (size_t i = 0; i < widgets.size(); i++)
@@ -2047,10 +2047,10 @@ class menu
                 // Footer
                 std::string footer_str = "Navigation: " + accent_color + "← ↑ → ↓" + c_gray + " | " + accent_color + "↲" + f_clear;
                 std::string footer_sep = string_repeat("─", string_length(footer_str) + 6);
-                frame << "\e[K\n" << center(footer_sep) << "\e[K\n" << center(footer_str) << "\e[K\n";
+                frame << "\x1B[K\n" << center(footer_sep) << "\x1B[K\n" << center(footer_str) << "\x1B[K\n";
 
                 // Clear garbage
-                frame << "\e[J";
+                frame << "\x1B[J";
 
                 // Print frame
                 output.show();
