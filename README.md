@@ -4,7 +4,7 @@
 
 This project started as a personal helper to speed up my university assignments and gradually evolved into a small TUI toolkit. It abstracts low level terminal handling across **Windows**, **Linux**, and **macOS** without requiring external dependencies like `ncurses`.
 
-![Demo Preview](examples/basic_menu.gif)
+![Demo](assets/showcase.gif)
 
 
 ## Features
@@ -43,7 +43,7 @@ int main()
 * `void sleep(int ms)`: pauses execution for the specified number of milliseconds.
 * `size_t get_terminal_width()` / `size_t get_terminal_height()`: return the current terminal dimensions.
 
-<!-- GIF placeholder: program initialization and terminal restoration -->
+---
 
 ### Buffered output
 
@@ -65,7 +65,7 @@ zk::output.show();
 
 Dialogs and menu text fields use `show(false)` and `show_previous()` to restore the screen when they close.
 
-<!-- GIF placeholder: buffered frame and screen restoration -->
+---
 
 ### Cursor and screen control
 
@@ -87,7 +87,7 @@ zk::output.show();
 
 The library also exposes `zk::terminal_width` and `zk::terminal_height`, updated when menus and dialogs render.
 
-<!-- GIF placeholder: cursor movement -->
+---
 
 ### Keyboard input
 
@@ -107,7 +107,7 @@ if (key == zk::key_esc)
 
 `get_key(false)` is suitable for a menu or game render loop.
 
-<!-- GIF placeholder: keyboard and arrow-key navigation -->
+---
 
 ### Colors and text styles
 
@@ -122,7 +122,9 @@ zk::output << zk::c_green << zk::bold << "Success" << zk::f_clear;
 zk::output.show();
 ```
 
-<!-- GIF placeholder: terminal colors -->
+![Demo](assets/colors.gif)
+
+---
 
 ### Custom input
 
@@ -206,7 +208,9 @@ std::string server = zk::input(
 
 In dialog mode the field scrolls horizontally so the cursor remains visible. Escape returns `default_text`; Enter returns the current text.
 
-<!-- GIF placeholder: inline input, password masking, and dialog input -->
+![Demo](assets/input.gif)
+
+---
 
 ### Dialogs and prompts
 
@@ -228,7 +232,9 @@ if (zk::confirm("Start the game?"))
 }
 ```
 
-<!-- GIF placeholder: selection, confirmation, and loading dialogs -->
+![Demo](assets/dialogs.gif)
+
+---
 
 ### Titles and layout helpers
 
@@ -247,7 +253,7 @@ zk::print_title({
 });
 ```
 
-<!-- GIF placeholder: centered titles and footers -->
+---
 
 ### Values and containers
 
@@ -257,6 +263,8 @@ zk::print_title({
 * `irandom(a, b)`: returns a random inclusive integer between `a` and `b`.
 * `exist(container, element)` / `exist_at(container, element)`: check for an element and return whether or where it is found.
 * `wipe(container, element)` / `reverse(container)`: remove an element or reverse a `std::vector`.
+
+---
 
 ### Numeric helpers
 
@@ -271,6 +279,8 @@ if (zk::is_valid_number("1.25e3"))
     double value = zk::to_number<double>("1.25e3");
 }
 ```
+
+---
 
 ### Menus
 
