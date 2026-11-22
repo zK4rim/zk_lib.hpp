@@ -1302,9 +1302,7 @@ void run_game_collection()
     });
     menu_tictactoe.add_br();
     menu_tictactoe.add_separator();
-    menu_tictactoe.add_label([]() {
-        return "Settings";
-    }, "", true);
+    menu_tictactoe.add_label("Settings", true);
     menu_tictactoe.add_br();
     menu_tictactoe.add_selector(
         "Mode",
@@ -1330,9 +1328,7 @@ void run_game_collection()
     });
     menu_minesweeper.add_br();
     menu_minesweeper.add_separator();
-    menu_minesweeper.add_label([]() {
-        return "Settings";
-    }, "", true);
+    menu_minesweeper.add_label("Settings", true);
     menu_minesweeper.add_br();
     menu_minesweeper.add_selector(
         "Size",
@@ -1359,9 +1355,7 @@ void run_game_collection()
     });
     menu_wordle.add_br();
     menu_wordle.add_separator();
-    menu_wordle.add_label([]() {
-        return "Settings";
-    }, "", true);
+    menu_wordle.add_label("Settings", true);
     menu_wordle.add_br();
     menu_wordle.add_selector(
         "Mode",
