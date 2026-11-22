@@ -8,9 +8,9 @@ void input_environment()
     Vector2D position = {10, 10};
 
     clear();
-    output << center(c_orange + "INPUT TESTING ENVIRONMENT" + f_clear) << "\n\n";
-    output << center("Press any key to test the input") << "\n";
-    output << center("Press ESC to exit") << "\n\n";
+    out << center(c_orange + "INPUT TESTING ENVIRONMENT" + f_clear) << "\n\n";
+    out << center("Press any key to test the input") << "\n";
+    out << center("Press ESC to exit") << "\n\n";
     cursor_move_to(1,6);
     while (true)
     {
@@ -42,17 +42,17 @@ void input_environment()
         if (current_input == key_intro) current_input = "INTRO";
         if (current_input == key_esc)   current_input = "ESC";
         
-        output << center("Current Input: " + c_cyan + current_input + f_clear) << "\n\n";
+        out << center("Current Input: " + c_cyan + current_input + f_clear) << "\n\n";
 
         for (size_t y = 0; y < 20; y++)
         {
             std::string row;
             for (size_t x = 0; x < 20; x++)
                 row += matrix[y][x] ? "● " : "○ ";
-            output << center(row) << "\n";
+            out << center(row) << "\n";
         }
         
-        output.show();
+        out.show();
 
         if (current_input == "ESC")
         {

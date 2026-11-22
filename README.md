@@ -47,11 +47,11 @@ int main()
 
 ### Buffered output
 
-The shared `zk::output` stream buffers a complete terminal frame before printing it:
+The shared `zk::out` stream buffers a complete terminal frame before printing it:
 
 ```cpp
-zk::output << "\e[H" << "Hello, terminal!";
-zk::output.show();
+zk::out << "\e[H" << "Hello, terminal!";
+zk::out.show();
 ```
 
 * `operator<<`: appends any stream-compatible value to the current frame.
@@ -69,7 +69,7 @@ Dialogs and menu text fields use `show(false)` and `show_previous()` to restore 
 
 ### Cursor and screen control
 
-These functions append terminal escape sequences to `zk::output`; call `show()` or `output.show()` to display them.
+These functions append terminal escape sequences to `zk::out`; call `show()` or `out.show()` to display them.
 
 * `clear()`: clears the screen and moves the cursor to `(1, 1)`.
 * `clear_line()`: clears the current line and returns the cursor to its beginning.
@@ -81,8 +81,8 @@ These functions append terminal escape sequences to `zk::output`; call `show()` 
 
 ```cpp
 zk::cursor_move_to(10, 5);
-zk::output << "Positioned text";
-zk::output.show();
+zk::out << "Positioned text";
+zk::out.show();
 ```
 
 The library also exposes `zk::terminal_width` and `zk::terminal_height`, updated when menus and dialogs render.
@@ -118,8 +118,8 @@ if (key == zk::key_esc)
 Built-in colors include `c_white`, `c_gray`, `c_black`, `c_green`, `c_cyan`, `c_blue`, `c_purple`, `c_pink`, `c_red`, `c_orange`, `c_yellow`, and `c_lime`.
 
 ```cpp
-zk::output << zk::c_green << zk::bold << "Success" << zk::f_clear;
-zk::output.show();
+zk::out << zk::c_green << zk::bold << "Success" << zk::f_clear;
+zk::out.show();
 ```
 
 ![Demo](assets/colors.gif)

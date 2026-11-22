@@ -96,7 +96,7 @@ public:
     }
 };
 
-inline out_stream output;
+inline out_stream out;
 
 }
 
@@ -116,15 +116,15 @@ inline out_stream output;
     void init_program()
     {
         // Enter alternate screen mode
-        output << "\x1B[?1049h";
+        out << "\x1B[?1049h";
 
         // Hide cursor
-        output << "\x1B[?25l";
+        out << "\x1B[?25l";
 
         // Allow Unicode
         SetConsoleOutputCP(CP_UTF8);
         SetConsoleCP(CP_UTF8);
-        output.show();
+        out.show();
 
         // Set random seed
         srand(time(0));
@@ -136,11 +136,11 @@ inline out_stream output;
     void exit_program()
     {
         // Exit alternate screen mode
-        output << "\x1B[?1049l";
+        out << "\x1B[?1049l";
 
         // Show cursor
-        output << "\x1B[?25h";
-        output.show();
+        out << "\x1B[?25h";
+        out.show();
     }
 
     /*
@@ -244,11 +244,11 @@ inline out_stream output;
         raw_mode_active = true;
 
         // Enter alternate screen mode
-        output << "\x1B[?1049h";
+        out << "\x1B[?1049h";
 
         // Hide cursor
-        output << "\x1B[?25l";
-        output.show();
+        out << "\x1B[?25l";
+        out.show();
 
         // Set random seed
         srand(time(0));
@@ -267,11 +267,11 @@ inline out_stream output;
         }
 
         // Exit alternate screen mode
-        output << "\x1B[?1049l";
+        out << "\x1B[?1049l";
 
         // Show cursor
-        output << "\x1B[?25h";
-        output.show();
+        out << "\x1B[?25h";
+        out.show();
     }
 
     /*
@@ -429,40 +429,40 @@ inline size_t terminal_width  = get_terminal_width();
 inline size_t terminal_height = get_terminal_height();
 
 // Erases the screen
-void clear() { output << "\x1B[2J\x1B[H"; }
+void clear() { out << "\x1B[2J\x1B[H"; }
 
 // Clear the current line and move the cursor to the beginning of the line
-void clear_line() { output << "\x1B[2K\r"; }
+void clear_line() { out << "\x1B[2K\r"; }
 
 // Save the cursor position on the screen
-void cursor_save_pos() { output << "\x1B[s"; }
+void cursor_save_pos() { out << "\x1B[s"; }
 
 // Move the cursor to the saved position
-void cursor_load_pos() { output << "\x1B[u"; }
+void cursor_load_pos() { out << "\x1B[u"; }
 
 // Move the cursor x lines up
-void cursor_move_up(size_t lines) { output << "\x1B[" << std::to_string(lines) << "A"; }
+void cursor_move_up(size_t lines) { out << "\x1B[" << std::to_string(lines) << "A"; }
 
 // Move the cursor x lines down
-void cursor_move_down(size_t lines) { output << "\x1B[" << std::to_string(lines) << "B"; }
+void cursor_move_down(size_t lines) { out << "\x1B[" << std::to_string(lines) << "B"; }
 
 // Move the cursor x columns to the right
-void cursor_move_right(size_t columns) { output << "\x1B[" << std::to_string(columns) << "C"; }
+void cursor_move_right(size_t columns) { out << "\x1B[" << std::to_string(columns) << "C"; }
 
 // Move the cursor x columns to the left
-void cursor_move_left(size_t columns) { output << "\x1B[" << std::to_string(columns) << "D"; }
+void cursor_move_left(size_t columns) { out << "\x1B[" << std::to_string(columns) << "D"; }
 
 // Move the cursor to a specific position
-void cursor_move_to(size_t x, size_t y) { output << "\x1B[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
+void cursor_move_to(size_t x, size_t y) { out << "\x1B[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
 
 // Move the cursor to the beginning of the line
-void cursor_to_begin_line() { output << "\r"; }
+void cursor_to_begin_line() { out << "\r"; }
 
 // Makes the cursor invisible
-void hide_cursor() { output << "\x1B[?25l"; }
+void hide_cursor() { out << "\x1B[?25l"; }
 
 // Makes the cursor visible
-void show_cursor() { output << "\x1B[?25h"; }
+void show_cursor() { out << "\x1B[?25h"; }
 
 /*
 @brief Limit the value within the min-max range
@@ -731,12 +731,12 @@ void print_title(std::vector<std::string> &lines, std::string color = "", bool c
     std::string separator = string_repeat("─", string_length(lines[0]));
 
     for (auto &&line : lines)
-        output << color << (centered ? center(line) : line) << f_clear << '\n';
+        out << color << (centered ? center(line) : line) << f_clear << '\n';
     
     if (draw_separator)
-        output << (centered ? center(separator) : separator) << "\n\n";
+        out << (centered ? center(separator) : separator) << "\n\n";
     
-    output.show();
+    out.show();
 }
 
 /*
@@ -751,12 +751,12 @@ void print_footer(std::string str)
     std::vector<std::string> lines = string_split(str, '\n');
 
     std::string separator = string_repeat("─", string_length(str) + 6);
-    output << "\n" << center(separator) << "\n";
+    out << "\n" << center(separator) << "\n";
 
     for (auto &&line : lines)
-        output << center(line) << "\n";
+        out << center(line) << "\n";
     
-    output.show();
+    out.show();
 }
 
 /*
@@ -905,12 +905,12 @@ void wait(std::string message = "Press any key to continue")
     int left = remaining / 2;
     int right = remaining - left;
 
-    output << color_rgb(255, 255, 255, true) << c_black << bold
+    out << color_rgb(255, 255, 255, true) << c_black << bold
         << string_repeat(" ", left)
         << message
         << string_repeat(" ", right)
         << f_clear;
-    output.show();
+    out.show();
 
     _getch();
     return;
@@ -950,18 +950,18 @@ static void draw_dialog_frame(
     cursor_move_to((terminal_width / 2) - (dialog_width / 2) - 2, (terminal_height / 2) - (dialog_height / 2) - 3);
     cursor_save_pos();
 
-    output << draw_top << '\n';
+    out << draw_top << '\n';
 
     for (size_t i = 0; i < dialog_height; i++)
     {
         cursor_load_pos(); cursor_move_down(i + 1);
-        output << draw_mid << '\n';
+        out << draw_mid << '\n';
     }
 
     cursor_load_pos(); cursor_move_down(dialog_height + 1);
-    output << draw_bot << '\n';
+    out << draw_bot << '\n';
     cursor_load_pos(); cursor_move_down(dialog_height + 2);
-    output << draw_shw << '\n';
+    out << draw_shw << '\n';
 
     cursor_load_pos();
     for (auto &&line : lines)
@@ -970,9 +970,9 @@ static void draw_dialog_frame(
         cursor_move_right((terminal_width / 2) - (dialog_width / 2));
 
         if (loading_mode)
-            output << c_white << loading_figure << " " << c_gray;
+            out << c_white << loading_figure << " " << c_gray;
 
-        output << line << (loading_mode ? f_clear : "");
+        out << line << (loading_mode ? f_clear : "");
     }
 
     if (!loading_mode)
@@ -988,7 +988,7 @@ static void draw_dialog_frame(
             size_t center_offset = (dialog_width - option_width) / 2;
 
             cursor_move_right(dialog_start + center_offset);
-            output << (selected_option == int(i) ? ("\x1B[4m" + option + f_clear) : option);
+            out << (selected_option == int(i) ? ("\x1B[4m" + option + f_clear) : option);
 
             i++;
         }
@@ -1061,13 +1061,13 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
 
             if (elapsed_ms >= (loading_sec * 1000))
             {
-                output.show_previous();
+                out.show_previous();
                 return 0;
             }
 
             // Flush
 
-            output.show(false);
+            out.show(false);
             
             // Wait time
 
@@ -1087,7 +1087,7 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
             continue;
         }
         
-        output.show(false);
+        out.show(false);
 
         // Get key
 
@@ -1103,7 +1103,7 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
 
         if (key == key_intro)
         {
-            output.show_previous();
+            out.show_previous();
             return selected_option;
         }
     }
@@ -1304,7 +1304,7 @@ std::string input(
 
             size_t input_cursor_offset = prompt_length + cursor_position - visible_start;
             draw_dialog_frame(lines, {}, actual_dialog_width, 0, false, "", true, input_cursor_offset);
-            output.show(false);
+            out.show(false);
         }
         else
         {
@@ -1327,15 +1327,15 @@ std::string input(
 
             // Print spaces for centering
 
-            for (size_t i = 0; i < leading_spaces; i++) output << ' ';
+            for (size_t i = 0; i < leading_spaces; i++) out << ' ';
 
             // Print prompt
 
-            output << prompt_color << prompt << "\x1B[0m";
+            out << prompt_color << prompt << "\x1B[0m";
 
             // Print user input
 
-            output << input_color << current_input;
+            out << input_color << current_input;
 
             // Load saved position
 
@@ -1349,7 +1349,7 @@ std::string input(
 
             for (size_t i = 0; i < cursor_offset; i++) cursor_move_right(1);
 
-            output.show();
+            out.show();
         }
 
         // Get key
@@ -1425,13 +1425,13 @@ std::string input(
 
     if (!menu_mode)
     {
-        output << "\n";
-        output.show();
+        out << "\n";
+        out.show();
     }
     else
     {
-        output.show(false);
-        output.show_previous();
+        out.show(false);
+        out.show_previous();
     }
 
     // Return input
@@ -1589,7 +1589,7 @@ class widget
         virtual ~widget() = default;
 
         virtual bool is_focusable() const { return true; }
-        virtual void draw(bool selected, std::string color, size_t width, std::ostream &out = output.stream()) = 0;
+        virtual void draw(bool selected, std::string color, size_t width, std::ostream &out = zk::out.stream()) = 0;
         virtual void on_left() {}
         virtual void on_right() {}
         virtual void on_enter() {}
@@ -1740,7 +1740,7 @@ class text_label : public widget
 
         bool is_focusable() const override { return false; }
 
-        void draw(bool selected, std::string color, size_t width, std::ostream &out = output.stream()) override
+        void draw(bool selected, std::string color, size_t width, std::ostream &out = zk::out.stream()) override
         {
             std::string current_text = dynamic_text ? dynamic_text() : label;
             std::string active_color = use_accent ? color : custom_color;
@@ -2025,7 +2025,7 @@ class menu
                 terminal_width  = get_terminal_width();
                 terminal_height = get_terminal_height();
 
-                std::ostream& frame = output.stream();
+                std::ostream& frame = out.stream();
 
                 // Move cursor to (1,1)
                 frame << "\x1B[H";
@@ -2053,7 +2053,7 @@ class menu
                 frame << "\x1B[J";
 
                 // Print frame
-                output.show();
+                out.show();
 
                 // Get input
                 std::string key;
@@ -2155,7 +2155,7 @@ class menu_manager
 
             while (menu_stack.size() > 0) { menu_stack.top()->show(); }
             clear();
-            output.show();
+            out.show();
         }
 };
 
