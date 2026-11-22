@@ -546,24 +546,38 @@ std::string color_rgb(int R, int G, int B, bool bg = false)
     return formatted_color;
 }
 
-const std::string f_clear   = "\e[0m";
+const std::string f_clear     = "\e[0m";
 
-const std::string bold      = "\e[1m";
-const std::string underline = "\e[4m";
+const std::string bold        = "\e[1m";
+const std::string underline   = "\e[4m";
 
-const std::string c_white   = color_rgb(255, 255, 255);
-const std::string c_gray    = color_rgb(100, 100, 100);
-const std::string c_black   = color_rgb(  0,   0,   0);
+const std::string c_white     = color_rgb(255, 255, 255);
+const std::string c_gray      = color_rgb(100, 100, 100);
+const std::string c_black     = color_rgb(  0,   0,   0);
 
-const std::string c_green   = color_rgb( 92, 237, 124);
-const std::string c_cyan    = color_rgb( 92, 237, 210);
-const std::string c_blue    = color_rgb( 92, 152, 237);
-const std::string c_purple  = color_rgb(121,  92, 237);
-const std::string c_pink    = color_rgb(230,  92, 237);
-const std::string c_red     = color_rgb(237,  92, 121);
-const std::string c_orange  = color_rgb(237, 133,  92);
-const std::string c_yellow  = color_rgb(237, 215,  92);
-const std::string c_lime    = color_rgb(191, 237,  92);
+const std::string c_green     = color_rgb( 92, 237, 124);
+const std::string c_cyan      = color_rgb( 92, 237, 210);
+const std::string c_blue      = color_rgb( 92, 152, 237);
+const std::string c_purple    = color_rgb(121,  92, 237);
+const std::string c_pink      = color_rgb(230,  92, 237);
+const std::string c_red       = color_rgb(237,  92, 121);
+const std::string c_orange    = color_rgb(237, 133,  92);
+const std::string c_yellow    = color_rgb(237, 215,  92);
+const std::string c_lime      = color_rgb(191, 237,  92);
+
+const std::string c_bg_white  = color_rgb(255, 255, 255, true);
+const std::string c_bg_gray   = color_rgb(100, 100, 100, true);
+const std::string c_bg_black  = color_rgb(  0,   0,   0, true);
+
+const std::string c_bg_green  = color_rgb( 92, 237, 124, true);
+const std::string c_bg_cyan   = color_rgb( 92, 237, 210, true);
+const std::string c_bg_blue   = color_rgb( 92, 152, 237, true);
+const std::string c_bg_purple = color_rgb(121,  92, 237, true);
+const std::string c_bg_pink   = color_rgb(230,  92, 237, true);
+const std::string c_bg_red    = color_rgb(237,  92, 121, true);
+const std::string c_bg_orange = color_rgb(237, 133,  92, true);
+const std::string c_bg_yellow = color_rgb(237, 215,  92, true);
+const std::string c_bg_lime   = color_rgb(191, 237,  92, true);
 
 /*
 @brief Get the number of characters that contains a string (supporting UTF-8)
