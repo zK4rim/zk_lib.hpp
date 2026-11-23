@@ -384,16 +384,16 @@ The [`examples/`](examples/) directory contains standalone programs that demonst
 * [`games.cpp`](examples/games.cpp): a menu-driven collection of Tic-Tac-Toe, Minesweeper, and Wordle.
 * [`showcase.cpp`](examples/showcase.cpp): a full feature showcase covering menus, widgets, dialogs, colors, strings, and math utilities.
 
-The examples require a C++14-compatible compiler. From the repository root, build and run them with:
+The examples require a C++17-compatible compiler. From the repository root, build and run them with:
 
 ```sh
-g++ -std=c++14 examples/basic_menu.cpp -o basic_menu
+g++ examples/basic_menu.cpp -o basic_menu
 ./basic_menu
 
-g++ -std=c++14 examples/games.cpp -o games
+g++ examples/games.cpp -o games
 ./games
 
-g++ -std=c++14 examples/showcase.cpp -o showcase
+g++ examples/showcase.cpp -o showcase
 ./showcase
 ```
 
