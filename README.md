@@ -215,7 +215,7 @@ In dialog mode the field scrolls horizontally so the cursor remains visible. Esc
 ### Dialogs and prompts
 
 * `wait(message = "Press any key to continue")`: prints a centered bottom banner and blocks until a key is pressed.
-* `dialog(message, options = {"Ok"}, loading_mode = false, loading_sec = 0)`: shows a centered dialog and returns the selected option index. In loading mode it displays an animation for `loading_sec` seconds.
+* `dialog(message, options = {"Ok"}, loading_mode = false, loading_sec = 0, esc_can_close = false)`: shows a centered dialog and returns the selected option index. In loading mode it displays an animation for `loading_sec` seconds.
 * `confirm(message)`: shows a Yes/No dialog and returns `true` only for Yes.
 * `exit_program_confirm()`: asks `"Exit the program?"` and returns the user's choice.
 * `exec_repeat(code)`: executes a function/lambda, then repeatedly asks whether it should run again.
