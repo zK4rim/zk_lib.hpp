@@ -1015,8 +1015,13 @@ Can operate as a selection dialog or a loading indicator
 
 @return The index of the selected option. Returns 0 in loading mode
 */
-int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool loading_mode = false, size_t loading_sec = 0)
-{
+int dialog(
+    std::string message,
+    std::vector<std::string> options = {"Ok"},
+    bool loading_mode = false,
+    size_t loading_sec = 0,
+    bool esc_can_close = false
+) {
     // Update terminal size
 
     terminal_height = get_terminal_height();
@@ -1099,6 +1104,15 @@ int dialog(std::string message, std::vector<std::string> options = {"Ok"}, bool 
         if (key == key_up)   selected_option--;
         wrap(selected_option, 0, int(options.size() - 1));
 
+        // ESC pressed
+
+        if (options.size() == 1) esc_can_close = true;
+        if (key == key_esc && esc_can_close)
+        {
+            out.show_previous();
+            return -1;
+        }
+
         // Return option
 
         if (key == key_intro)
@@ -1124,7 +1138,7 @@ bool confirm(std::string message)
     options.push_back(c_lime + "Yes" + f_clear);
     options.push_back(c_red + "No" + f_clear);
 
-    return !dialog(c_green + bold + "Confirm\n" + f_clear + message, options);
+    return !dialog(c_green + bold + "Confirm\n" + f_clear + message, options, false, 0, true);
 }
 
 /*
