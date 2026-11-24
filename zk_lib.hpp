@@ -15,6 +15,7 @@
 #include <ctime>
 #include <vector>
 #include <stack>
+#include <chrono>
 
 namespace zk
 {
@@ -97,6 +98,51 @@ public:
 };
 
 inline out_stream out;
+
+/*
+@brief A simple timer class that checks if a specified duration has elapsed since its creation or last reset
+*/
+class timer
+{
+private:
+    std::chrono::milliseconds duration;
+    std::chrono::steady_clock::time_point start;
+
+public:
+    /*
+    @brief Constructs a timer with a specified duration
+    @param ms The duration in milliseconds
+    */
+    timer(int ms)
+    {
+        this->duration = std::chrono::milliseconds(ms);
+        start = std::chrono::steady_clock::now();
+    }
+
+    /*
+    @brief Checks if the specified duration has elapsed since the timer was created or last reset
+    */
+    bool time_reached()
+    {
+        auto now  = std::chrono::steady_clock::now();
+
+        if ((now - start) >= duration)
+        {
+            start += duration;
+            return true;
+        }
+        
+        return false;
+    }
+
+    /*
+    @brief Resets the timer
+    */
+    void reset()
+    {
+        start = std::chrono::steady_clock::now();
+    }
+};
 
 }
 
@@ -224,7 +270,6 @@ inline out_stream out;
     #include <termios.h>
     #include <unistd.h>
     #include <thread>
-    #include <chrono>
 
     namespace zk {
 

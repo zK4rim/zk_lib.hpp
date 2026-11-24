@@ -15,6 +15,7 @@ This project started as a personal helper to speed up my university assignments 
   * `button`, `selector`, `slider`, `checkbox`, `textfield` (with password masking), `progress_bar`, `text_label`, `separator`, and `spacer`.
 * **Dialogs & Prompts:** Centered selection dialogs, animated loading spinners, confirmation prompts, and UTF-8 aware inline text input.
 * **ANSI & UTF-8 Utilities:** 24-bit TrueColor RGB support, cursor positioning, and string helpers that accurately count multi-byte UTF-8 characters while ignoring ANSI escape codes.
+* **Timer:** A lightweight millisecond timer for checking elapsed time and recurring intervals.
 * **Buffered Output:** A shared `out_stream` buffers terminal output, displays complete frames, and can restore the last frame after a dialog or other overlay.
 * **Zero Dependencies:** Just drop a single `.hpp` file into your project and compile.
 
@@ -42,6 +43,30 @@ int main()
 * `void exit_program()`: restores terminal settings, shows the cursor, and leaves alternate-screen mode.
 * `void sleep(int ms)`: pauses execution for the specified number of milliseconds.
 * `size_t get_terminal_width()` / `size_t get_terminal_height()`: return the current terminal dimensions.
+
+---
+
+### Timer
+
+Use `zk::timer` to check whether a duration has elapsed without blocking:
+
+```cpp
+zk::timer tick(1000); // milliseconds
+
+while (running)
+{
+    if (tick.time_reached())
+    {
+        // Runs once per elapsed interval
+    }
+
+    // Handle input or update the program
+}
+```
+
+* `timer(int ms)`: starts a timer with the specified duration in milliseconds.
+* `time_reached()`: returns `true` when the duration has elapsed, then advances the timer by one interval. Repeated calls can catch up if multiple intervals elapsed.
+* `reset()`: restarts the timer from the current time.
 
 ---
 
