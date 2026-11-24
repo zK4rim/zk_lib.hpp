@@ -2020,6 +2020,11 @@ class menu
         void close() { executing = false; }
 
         /*
+        @brief Resets the selected option to the first focusable widget
+        */
+        void reset_selected() { selected_option = 0; }
+
+        /*
         @brief Draws the menu in the screen
         */
         void show()
@@ -2153,6 +2158,7 @@ class menu_manager
 
             if (!menu_stack.empty())
             {
+                menu_stack.top()->reset_selected();
                 menu_stack.top()->close();
                 menu_stack.pop();
             }
