@@ -116,6 +116,7 @@ int main()
 
     menu_main.set_color(accent_color);
     menu_main.set_ascii_title(ascii_title);
+    menu_main.set_ascii_title_animation(menu::title_animation::rainbow);
 
     menu_main.add_button("Widgets Showcase", [&](){
         manager.submenu_goto(menu_widgets);    

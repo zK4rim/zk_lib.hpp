@@ -124,7 +124,7 @@ public:
     */
     bool time_reached()
     {
-        auto now  = std::chrono::steady_clock::now();
+        auto now = std::chrono::steady_clock::now();
 
         if ((now - start) >= duration)
         {
@@ -1868,63 +1868,214 @@ class progress_bar : public widget
 
 class menu
 {
-    private:
-        // Executing flag
+public:
+    enum class title_animation
+    {
+        none,
+        scanline_h,
+        scanline_v,
+        rainbow,
+        glitch
+    };
 
-        bool executing = true;
+private:
+    bool executing = true;
+    std::vector<std::string> ascii_title;
+    title_animation current_animation = title_animation::none;
+    int animation_i = 0;
+    std::string menu_title;
+    std::string accent_color;
+    std::vector<std::unique_ptr<widget>> widgets;
+    int selected_option = 0;
+    size_t menu_width;
 
-        // ASCII title
+    std::function<void()> on_escape = nullptr;
+    std::function<void()> on_update = nullptr;
 
-        std::vector<std::string> ascii_title;
+    template<typename T, typename... Args>
+    void add(Args&&... args) { widgets.push_back(std::make_unique<T>(std::forward<Args>(args)...)); }
 
-        // Menu title
+    bool has_focusable_widgets() const
+    {
+        for (const auto &w : widgets)
+            if (w->is_focusable()) return true;
+        return false;
+    }
 
-        std::string menu_title;
+    void move_selection(int direction)
+    {
+        if (!has_focusable_widgets()) return;
 
-        // Menu color
+        do {
+            selected_option += direction;
+            wrap(selected_option, 0, int(widgets.size() - 1));
+        } while (!widgets[selected_option]->is_focusable());
+    }
 
-        std::string accent_color;
-
-        // Widgets list
-
-        std::vector<std::unique_ptr<widget>> widgets;
-
-        // Selected option
-
-        int selected_option = 0;
-
-        // Menu width for centering
-
-        size_t menu_width;
-
-        // Append widget to the menu
-
-        template<typename T, typename... Args>
-        void add(Args&&... args) { widgets.push_back(std::make_unique<T>(std::forward<Args>(args)...)); }
-
-        // Check if there is a widget not focusable
-
-        bool has_focusable_widgets() const
+    void render_ascii_title()
+    {
+        switch (current_animation)
         {
-            for (const auto &w : widgets)
-                if (w->is_focusable()) return true;
-            return false;
+            default:
+            case title_animation::none:
+                for (const auto &line : ascii_title)
+                    out << accent_color << center(line) << "\x1B[0m\x1B[K\n";
+                break;
+            
+            case title_animation::scanline_h:
+            {
+                size_t max_length = 0;
+                for (const auto &line : ascii_title)
+                    max_length = std::max(max_length, string_length(line));
+                
+                if (max_length > 0)
+                    wrap(animation_i, 0, int(max_length) - 1);
+                
+                for (const auto &line : ascii_title)
+                {
+                    size_t line_length = string_length(line);
+                    std::string new_line = line;
+
+                    if (size_t(animation_i) < line_length)
+                        new_line = utf8_slice(line, 0, animation_i)
+                                 + " "
+                                 + utf8_slice(line, animation_i + 1, line_length - animation_i - 1);
+                    
+                    out << accent_color << center(new_line) << "\x1B[0m\x1B[K\n";
+                }
+
+                break;
+            }
+            
+            case title_animation::scanline_v:
+            {
+                if (!ascii_title.empty())
+                    wrap(animation_i, 0, int(ascii_title.size() - 1));
+                
+                for (size_t row = 0; row < ascii_title.size(); row++)
+                {
+                    const std::string &line = ascii_title[row];
+                    out << accent_color
+                        << center(int(row) == animation_i ? string_repeat(" ", string_length(line)) : line)
+                        << "\x1B[0m\x1B[K\n";
+                }
+
+                break;
+            }
+
+            case title_animation::rainbow:
+            {
+                static const std::string rainbow_colors[] = {
+                    c_red, c_orange, c_yellow, c_lime, c_green, c_cyan, c_blue, c_purple, c_pink
+                };
+                const int color_count = int(sizeof(rainbow_colors) / sizeof(rainbow_colors[0]));
+                wrap(animation_i, 0, color_count - 1);
+
+                for (const auto &line : ascii_title)
+                {
+                    std::string remaining = line;
+                    std::string colored_line;
+                    size_t character_i = 0;
+
+                    while (!remaining.empty())
+                    {
+                        std::string character = utf8_pop_front(remaining);
+                        int color_i = (animation_i + int(character_i)) % color_count;
+                        colored_line += rainbow_colors[color_i] + character;
+                        character_i++;
+                    }
+                    
+                    out << center(colored_line) << "\x1B[0m\x1B[K\n";
+                }
+                
+                break;
+            }
+
+            case title_animation::glitch:
+            {
+                static const std::string glitch_chars[] = { "#", "%", "&", "@", "?", "/", "\\", "|", "_" };
+                const int glitch_count = int(sizeof(glitch_chars) / sizeof(glitch_chars[0]));
+
+                for (const auto &line : ascii_title)
+                {
+                    std::string remaining = line;
+                    std::string glitched_line;
+
+                    while (!remaining.empty())
+                    {
+                        std::string character = utf8_pop_front(remaining);
+                        if (character != " " && irandom(1, 100) <= 8)
+                            glitched_line += color_rgb(255, irandom(40, 120), irandom(160, 255))
+                                           + glitch_chars[irandom(0, glitch_count - 1)]
+                                           + accent_color;
+                        else
+                            glitched_line += accent_color + character;
+                    }
+
+                    out << center(glitched_line) << "\x1B[0m\x1B[K\n";
+                }
+                break;
+            }
         }
+    }
 
-        // Change selected widget
+    void render_frame()
+    {
+        out << "\x1B[H";
 
-        void move_selection(int direction)
+        render_ascii_title();
+
+        // Header
+        out << center(string_repeat("─", menu_width)) << "\x1B[K\n\x1B[K\n";
+        out << center(menu_title) << "\x1B[K\n\x1B[K\n";
+
+        // Widgets
+        for (size_t i = 0; i < widgets.size(); i++)
+            widgets[i]->draw(int(i) == selected_option, accent_color, terminal_width);
+        
+        // Footer
+        std::string footer_str = "Navigation: " + accent_color + "← ↑ → ↓" + c_gray + " | " + accent_color + "↲" + f_clear;
+        std::string footer_sep = string_repeat("─", string_length(footer_str) + 6);
+        out << "\x1B[K\n" << center(footer_sep) << "\x1B[K\n" << center(footer_str) << "\x1B[K\n";
+
+        // Clear trailing garbage & flush
+        out << "\x1B[J";
+        out.show();
+    }
+
+    void handle_input()
+    {
+        std::string key;
+        while (!(key = get_key(false)).empty())
         {
-            if (!has_focusable_widgets()) return;
-
-            do {
-                selected_option += direction;
-                wrap(selected_option, 0, int(widgets.size() - 1));
-            } while (!widgets[selected_option]->is_focusable());
+            if (has_focusable_widgets())
+            {
+                if (key == key_intro) { widgets[selected_option]->on_enter(); clear(); return; }
+                if (key == key_left)  { widgets[selected_option]->on_left(); }
+                if (key == key_right) { widgets[selected_option]->on_right(); }
+            }
+            
+            if (key == key_up)   { move_selection(-1); }
+            if (key == key_down) { move_selection(1); }
+            
+            if (key == key_esc)
+            {
+                if (on_escape)
+                {
+                    on_escape();
+                    clear();
+                    return;
+                }
+                if (exit_program_confirm())
+                {
+                    clear();
+                    close();
+                    return;
+                }
+                clear();
+            }
         }
-
-        std::function<void()> on_escape = nullptr;
-        std::function<void()> on_update = nullptr;
+    }
 
     public:
         /*
@@ -2031,7 +2182,14 @@ class menu
 
         @param title Vector of ASCII art lines
         */
-        void set_ascii_title(std::vector<std::string> title) { ascii_title = title; menu_width = title[0].length(); }
+        void set_ascii_title(std::vector<std::string> title) { ascii_title = title; menu_width = title.empty() ? 0 : string_length(title[0]); }
+
+        /*
+        @brief Set an animation to the ASCII art title
+
+        @param animation Animation to be displayed
+        */
+        void set_ascii_title_animation(title_animation animation) { current_animation = animation; }
 
         /*
         @brief Set the function to be called when the escape key is pressed
@@ -2077,83 +2235,31 @@ class menu
             executing = true;
             clear();
 
-            // Check for fist focusable widget
-            if (has_focusable_widgets() && !widgets[selected_option]->is_focusable()) move_selection(1);
+            if (has_focusable_widgets() && !widgets[selected_option]->is_focusable())
+                move_selection(1);
             
+            timer anim_timer(100);
+            animation_i = 0;
+
             while (executing)
             {
                 if (on_update) on_update();
                 if (!executing) break;
 
-                // Update terminal size
                 terminal_width  = get_terminal_width();
                 terminal_height = get_terminal_height();
 
-                std::ostream& frame = out.stream();
+                if (current_animation != title_animation::none &&
+                    current_animation != title_animation::glitch &&
+                    anim_timer.time_reached())
 
-                // Move cursor to (1,1)
-                frame << "\x1B[H";
-
-                // ASCII title
-                for (auto &&line : ascii_title)
-                    frame << accent_color << center(line) << "\x1B[0m\x1B[K\n";
-
-                // ASCII title separator and menu title
-                frame << center(string_repeat("─", menu_width)) << "\x1B[K\n\x1B[K\n";
-                frame << center(menu_title) << "\x1B[K\n\x1B[K\n";
-
-                // Draw widgets to the buffer
-                for (size_t i = 0; i < widgets.size(); i++)
-                {
-                    widgets[i]->draw(int(i) == selected_option, accent_color, terminal_width, frame);
-                }
-
-                // Footer
-                std::string footer_str = "Navigation: " + accent_color + "← ↑ → ↓" + c_gray + " | " + accent_color + "↲" + f_clear;
-                std::string footer_sep = string_repeat("─", string_length(footer_str) + 6);
-                frame << "\x1B[K\n" << center(footer_sep) << "\x1B[K\n" << center(footer_str) << "\x1B[K\n";
-
-                // Clear garbage
-                frame << "\x1B[J";
-
-                // Print frame
-                out.show();
-
-                // Get input
-                std::string key;
-                while (!(key = get_key(false)).empty())
-                {
-                    if (has_focusable_widgets())
-                    {
-                        if (key == key_intro) { widgets[selected_option]->on_enter(); clear(); break; }
-                        if (key == key_left)  { widgets[selected_option]->on_left(); }
-                        if (key == key_right) { widgets[selected_option]->on_right(); }
-                    }
-
-                    if (key == key_up)   { move_selection(-1); }
-                    if (key == key_down) { move_selection(1); }
-
-                    if (key == key_esc)
-                    {
-                        if (on_escape)
-                        {
-                            on_escape();
-                            clear();
-                            break;
-                        }
-                        else if (exit_program_confirm())
-                        {
-                            clear();
-                            close();
-                            break;
-                        }
-
-                        clear();
-                    }
-                }
-
+                    animation_i++;
+                
+                render_frame();
+                handle_input();
                 sleep(33);
             }
+            
         }
 };
 

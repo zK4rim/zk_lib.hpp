@@ -339,6 +339,7 @@ Available menu methods:
 * `add_separator(line_width = 20, pattern = "─", color = c_gray)`: adds a decorative separator.
 * `add_progress(text, value, max)`: draws a read-only progress bar.
 * `set_ascii_title(lines)`: Sets an ASCII art title above the menu.
+* `set_ascii_title_animation(menu::title_animation)`: choose `none`, a left-to-right character sweep (`scanline_h`), a top-to-bottom row sweep (`scanline_v`), per-character rainbow colors (`rainbow`), or randomized character/color glitches (`glitch`).
 * `set_color(color)` / `get_color()`: configure or retrieve the menu accent.
 * `on_loop(callback)`: run a callback before every frame is drawn.
 * `set_on_escape(callback)`: handle Escape for the menu.
@@ -346,8 +347,6 @@ Available menu methods:
 * `show()`: render and run the menu until it is closed.
 
 For example, `menu.add_textfield("Name", name, false, 48, 24)` sets the dialog's interior width to 48 characters and the input limit to 24 UTF-8 characters. The dialog width is capped to fit the terminal.
-
-<!-- GIF placeholder: interactive menu widgets -->
 
 #### Menu widget reference
 
