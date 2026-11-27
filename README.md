@@ -15,6 +15,7 @@ This project started as a personal helper to speed up my university assignments 
   * `button`, `selector`, `slider`, `checkbox`, `textfield` (with password masking), `progress_bar`, `text_label`, `separator`, and `spacer`.
 * **Dialogs & Prompts:** Centered selection dialogs, animated loading spinners, confirmation prompts, and UTF-8 aware inline text input.
 * **ANSI & UTF-8 Utilities:** 24-bit TrueColor RGB support, cursor positioning, and string helpers that accurately count multi-byte UTF-8 characters while ignoring ANSI escape codes.
+* **Numeric Helpers:** Validate decimal and base-prefixed numbers, convert strings, format values with custom separators, and check even/prime integers.
 * **Timer:** A lightweight millisecond timer for checking elapsed time and recurring intervals.
 * **Buffered Output:** A shared `out_stream` buffers terminal output, displays complete frames, and can restore the last frame after a dialog or other overlay.
 * **Zero Dependencies:** Just drop a single `.hpp` file into your project and compile.
@@ -293,7 +294,11 @@ zk::print_title({
 
 ### Numeric helpers
 
-* `is_valid_number(str)`: validates integers, decimals, signed values, and scientific notation.
+* `is_valid_number(str, allow_exponent = true, allow_decimals = true, allow_signs = true)`: validates integers, decimals, signed values, and scientific notation. The flags can disable exponents, decimal points, or `+`/`-` signs.
+* `is_valid_binary(str, allow_prefix = true)`: validates binary digits (`0` and `1`). When enabled, the optional `0b` or `0B` prefix is accepted.
+* `is_valid_octal(str, allow_prefix = true)`: validates octal digits (`0`-`7`). When enabled, the optional `0o` or `0O` prefix is accepted.
+* `is_valid_hexadecimal(str, allow_prefix = true)`: validates hexadecimal digits (`0`-`9`, `a`-`f`, `A`-`F`). When enabled, the optional `0x` or `0X` prefix is accepted.
+* `format_number(n, precision = 2, decimal_separator = '.', thousands_separator = ',', fancy = false)`: rounds and formats an integral, floating-point, or numeric string value, inserting custom decimal and thousands separators. Set `fancy` to use Unicode seven-segment characters.
 * `to_number<T>(str)`: converts a string to `int`, `long`, `long long`, `unsigned long`, `unsigned long long`, `float`, or `double`.
 * `is_even(n)` / `is_prime(n)`: check basic integer properties.
 * `fancy_number(n)`: converts digits to Unicode seven-segment characters.
@@ -303,6 +308,17 @@ if (zk::is_valid_number("1.25e3"))
 {
     double value = zk::to_number<double>("1.25e3");
 }
+
+if (zk::is_valid_binary("0b10101"))
+{
+    // Valid binary number
+}
+
+std::string formatted = zk::format_number(12345.678, 2, '.', ',', false);
+// "12,345.68"
+
+std::string fancy = zk::format_number(12345.678, 0, '.', ',', true);
+// "12,346" with digits styled as 🯱🯲🯳🯴🯶
 ```
 
 ---

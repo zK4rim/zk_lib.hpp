@@ -16,6 +16,8 @@
 #include <vector>
 #include <stack>
 #include <chrono>
+#include <cmath>
+#include <iomanip>
 
 namespace zk
 {
@@ -815,7 +817,12 @@ void print_footer(std::string str)
 template<typename T>
 std::string fancy_number(T n)
 {
-    std::string n_string = std::to_string(n);
+    std::string n_string;
+    if constexpr (std::is_convertible_v<T, std::string>)
+        n_string = n;
+    else
+        n_string = std::to_string(n);
+
     std::string fancy_n  = "";
     
     for (auto &&chr : n_string)
@@ -1674,6 +1681,99 @@ bool is_valid_hexadecimal(std::string str, bool allow_prefix = true)
         if (!char_in(str[i], "0123456789abcdefABCDEF")) return false;
 
     return true;
+}
+
+/*
+@brief Formats a number with specified precision, separators, and optional fancy styling
+
+@param n Number to format
+@param precision Number of decimal places (default: 2)
+@param decimal_separator Character to use as the decimal point (default: '.')
+@param thousands_separator Character to use as the thousands separator (default: ',')
+@param fancy If true, applies a fancy Unicode style to the number (default: false)
+
+@return A formatted string representation of the number
+*/
+template<typename T>
+std::string format_number(
+    T n,
+    int precision = 2,
+    char decimal_separator = '.',
+    char thousands_separator = ',',
+    bool fancy = false
+)
+{
+    // Convert the input to a long double for formatting
+    long double value;
+
+    // Handle different types of input
+    if constexpr (std::is_same_v<T, std::string>)
+    {
+        if (!is_valid_number(n)) return n;
+        value = std::stold(n);
+    }
+    else if constexpr (std::is_integral_v<T>)
+    {
+        value = static_cast<long double>(n);
+    }
+    else if constexpr (std::is_floating_point_v<T>)
+    {
+        value = static_cast<long double>(n);
+    }
+    else
+        throw std::invalid_argument("Unsupported type for format_number");
+
+    // Check if the value is finite
+    if (!std::isfinite(value))
+        throw std::invalid_argument("format_number requires a finite number");
+
+    // Ensure precision is non-negative
+    if (precision < 0) precision = 0;
+
+    // Round the value to the specified precision
+    bool is_negative = std::signbit(value);
+    value = std::fabsl(value);
+
+    // Round to the specified precision
+    if (precision <= 18)
+    {
+        long double scale = std::powl(10.0L, precision);
+        long double scaled_value = value * scale;
+        scaled_value += 1e-9L;
+        value = std::floorl(scaled_value + 0.5L) / scale;
+    }
+    if (value == 0.0L) is_negative = false;
+
+    // Convert the rounded value to a string with fixed precision
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(precision) << value;
+    std::string formatted_value = stream.str();
+
+    // Split the formatted value into integer and decimal parts
+    std::string decimal_str;
+    size_t decimal_pos = formatted_value.find('.');
+    if (decimal_pos != std::string::npos)
+    {
+        decimal_str = formatted_value.substr(decimal_pos + 1);
+        formatted_value.resize(decimal_pos);
+
+        while (!decimal_str.empty() && decimal_str.back() == '0')
+            decimal_str.pop_back();
+    }
+
+    // Insert thousands separators into the integer part
+    for (size_t i = formatted_value.length(); i > 3; i -= 3)
+        formatted_value.insert(i - 3, 1, thousands_separator);
+
+    // Construct the final formatted number
+    std::string formatted_number;
+    if (is_negative) formatted_number += '-';
+    formatted_number += formatted_value;
+    if (!decimal_str.empty() && precision > 0)
+        formatted_number += decimal_separator + decimal_str;
+
+    if (fancy) return fancy_number(formatted_number);
+    return formatted_number;
 }
 
 #define SPECIALIZE_TO_NUMBER(Type, Func) \
