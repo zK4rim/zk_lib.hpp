@@ -26,7 +26,7 @@ All public names documented below belong to the `zk` namespace.
 
 ### Program lifecycle
 
-Call `init_program()` once near the start of `main()` and `exit_program()` before returning. Both functions are cross-platform.
+Call `init_program()` once near the start of `main()` and `exit_program()` before returning. Both functions are cross-platform. Pressing Ctrl+C after initialization restores the terminal before exiting.
 
 ```cpp
 int main()

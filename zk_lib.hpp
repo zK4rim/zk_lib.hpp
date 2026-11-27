@@ -12,6 +12,7 @@
 #include <cctype>
 #include <charconv>
 #include <cstdlib>
+#include <csignal>
 #include <functional>
 #include <limits>
 #include <memory>
@@ -164,11 +165,18 @@ public:
 
     namespace zk {
 
+    inline void exit_program();
+
     /*
     @brief Initializes the terminal for raw input mode and sets up the environment for the program
     */
-    void init_program()
+    inline void init_program()
     {
+        std::signal(SIGINT, [](int) {
+            exit_program();
+            std::exit(EXIT_SUCCESS);
+        });
+
         // Enter alternate screen mode
         out << "\x1B[?1049h";
 
@@ -187,7 +195,7 @@ public:
     /*
     @brief Exits the program and restores the terminal to its original state
     */
-    void exit_program()
+    inline void exit_program()
     {
         // Exit alternate screen mode
         out << "\x1B[?1049l";
@@ -201,13 +209,13 @@ public:
     @brief Pauses the execution of the program for a specified number of milliseconds
     @param ms The number of milliseconds to sleep
     */
-    void sleep(int ms) { Sleep(ms); }
+    inline void sleep(int ms) { Sleep(ms); }
 
     /*
     @brief Gets the width of the terminal in characters
     @return The width of the terminal
     */
-    size_t get_terminal_width()
+    inline size_t get_terminal_width()
     {
         // Get terminal data
         CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -221,7 +229,7 @@ public:
     @brief Gets the height of the terminal in characters
     @return The height of the terminal
     */
-    size_t get_terminal_height()
+    inline size_t get_terminal_height()
     {
         // Get terminal data
         CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -246,7 +254,7 @@ public:
     @param blocking Whether to block until a key is pressed
     @return The key pressed, or an empty string if no key was pressed
     */
-    std::string get_key(bool blocking = true)
+    inline std::string get_key(bool blocking = true)
     {
         // Non-blocking mode
         if (!blocking && !_kbhit()) return "";
@@ -284,11 +292,18 @@ public:
     inline struct termios orig_termios;
     inline bool raw_mode_active = false;
 
+    inline void exit_program();
+
     /*
     @brief Initializes the terminal for raw input mode and sets up the environment for the program
     */
-    void init_program()
+    inline void init_program()
     {
+        std::signal(SIGINT, [](int) {
+            exit_program();
+            std::exit(EXIT_SUCCESS);
+        });
+
         // Save terminal config and deactivate eco buffer
         tcgetattr(STDIN_FILENO, &orig_termios);
         struct termios raw = orig_termios;
@@ -310,7 +325,7 @@ public:
     /*
     @brief Exits the program and restores the terminal to its original state
     */
-    void exit_program()
+    inline void exit_program()
     {
         // Restore terminal config
         if (raw_mode_active)
@@ -331,13 +346,13 @@ public:
     @brief Pauses the execution of the program for a specified number of milliseconds
     @param ms The number of milliseconds to sleep
     */
-    void sleep(int ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
+    inline void sleep(int ms) { std::this_thread::sleep_for(std::chrono::milliseconds(ms)); }
 
     /*
     @brief Gets the width of the terminal in characters
     @return The width of the terminal
     */
-    size_t get_terminal_width()
+    inline size_t get_terminal_width()
     {
         // Get terminal data
         struct winsize w;
@@ -351,7 +366,7 @@ public:
     @brief Gets the height of the terminal in characters
     @return The height of the terminal
     */
-    size_t get_terminal_height()
+    inline size_t get_terminal_height()
     {
         // Get terminal data
         struct winsize w;
@@ -366,7 +381,7 @@ public:
     @param timeout_ms The timeout in milliseconds
     @return True if input is available, false otherwise
     */
-    bool has_input(int timeout_ms = 0)
+    inline bool has_input(int timeout_ms = 0)
     {
         struct timeval tv;
         tv.tv_sec = timeout_ms / 1000;
@@ -383,7 +398,7 @@ public:
     @brief Gets a single character from the standard input
     @return The character read, or -1 if an error occurred
     */
-    int _getch()
+    inline int _getch()
     {
         if (raw_mode_active)
         {
@@ -421,7 +436,7 @@ public:
     @param blocking Whether to block until a key is pressed
     @return The key pressed, or an empty string if no key was pressed
     */
-    std::string get_key(bool blocking = true)
+    inline std::string get_key(bool blocking = true)
     {
         if (!blocking && !has_input(0)) return "";
 
@@ -482,40 +497,40 @@ inline size_t terminal_width  = get_terminal_width();
 inline size_t terminal_height = get_terminal_height();
 
 // Erases the screen
-void clear() { out << "\x1B[2J\x1B[H"; }
+inline void clear() { out << "\x1B[2J\x1B[H"; }
 
 // Clear the current line and move the cursor to the beginning of the line
-void clear_line() { out << "\x1B[2K\r"; }
+inline void clear_line() { out << "\x1B[2K\r"; }
 
 // Save the cursor position on the screen
-void cursor_save_pos() { out << "\x1B[s"; }
+inline void cursor_save_pos() { out << "\x1B[s"; }
 
 // Move the cursor to the saved position
-void cursor_load_pos() { out << "\x1B[u"; }
+inline void cursor_load_pos() { out << "\x1B[u"; }
 
 // Move the cursor x lines up
-void cursor_move_up(size_t lines) { out << "\x1B[" << std::to_string(lines) << "A"; }
+inline void cursor_move_up(size_t lines) { out << "\x1B[" << std::to_string(lines) << "A"; }
 
 // Move the cursor x lines down
-void cursor_move_down(size_t lines) { out << "\x1B[" << std::to_string(lines) << "B"; }
+inline void cursor_move_down(size_t lines) { out << "\x1B[" << std::to_string(lines) << "B"; }
 
 // Move the cursor x columns to the right
-void cursor_move_right(size_t columns) { out << "\x1B[" << std::to_string(columns) << "C"; }
+inline void cursor_move_right(size_t columns) { out << "\x1B[" << std::to_string(columns) << "C"; }
 
 // Move the cursor x columns to the left
-void cursor_move_left(size_t columns) { out << "\x1B[" << std::to_string(columns) << "D"; }
+inline void cursor_move_left(size_t columns) { out << "\x1B[" << std::to_string(columns) << "D"; }
 
 // Move the cursor to a specific position
-void cursor_move_to(size_t x, size_t y) { out << "\x1B[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
+inline void cursor_move_to(size_t x, size_t y) { out << "\x1B[" << std::to_string(y) << ";" << std::to_string(x) << "H"; }
 
 // Move the cursor to the beginning of the line
-void cursor_to_begin_line() { out << "\r"; }
+inline void cursor_to_begin_line() { out << "\r"; }
 
 // Makes the cursor invisible
-void hide_cursor() { out << "\x1B[?25l"; }
+inline void hide_cursor() { out << "\x1B[?25l"; }
 
 // Makes the cursor visible
-void show_cursor() { out << "\x1B[?25h"; }
+inline void show_cursor() { out << "\x1B[?25h"; }
 
 /*
 @brief Limit the value within the min-max range
@@ -526,7 +541,7 @@ It doesn't return nothing, instead, it changes the variable directly
 @param min Minimum value possible
 @param max Maximum value possible
 */
-void clamp(int &value, int min, int max)
+inline void clamp(int &value, int min, int max)
 {
     if (value < min) { value = min; }
     if (value > max) { value = max; }
@@ -541,7 +556,7 @@ It doesn't return nothing, instead, it changes the variable directly
 @param min Minimum value possible
 @param max Maximum value possible
 */
-void wrap(int &value, int min, int max)
+inline void wrap(int &value, int min, int max)
 {
     int range = max - min + 1;
     value = min + ((value - min) % range + range) % range;
@@ -568,7 +583,7 @@ bool in_range(const T &value, T min, T max) { return (value >= min && value <= m
 
 @return Random integer
 */
-int irandom(int a, int b)
+inline int irandom(int a, int b)
 {
     int range = b - a + 1;
     return a + (rand() % range);
@@ -584,7 +599,7 @@ int irandom(int a, int b)
 
 @return String with the ANSI code of that color
 */
-std::string color_rgb(int R, int G, int B, bool bg = false)
+inline std::string color_rgb(int R, int G, int B, bool bg = false)
 {
     // Clamp values
     clamp(R, 0, 255); clamp(G, 0, 255); clamp(B, 0, 255);
@@ -640,7 +655,7 @@ inline const std::string c_bg_lime   = color_rgb(191, 237,  92, true);
 
 @return Number of chars in the string
 */
-size_t string_length(const std::string &s, bool ignore_ansi = true)
+inline size_t string_length(const std::string &s, bool ignore_ansi = true)
 {
     size_t count = 0;
     bool in_ansi = false;
@@ -683,7 +698,7 @@ size_t string_length(const std::string &s, bool ignore_ansi = true)
 
 @return A vector containing the substrings
 */
-std::vector<std::string> string_split(const std::string &text, const char delimiter)
+inline std::vector<std::string> string_split(const std::string &text, const char delimiter)
 {
     std::vector<std::string> data;
     std::string current_buffer = "";
@@ -721,7 +736,7 @@ std::vector<std::string> string_split(const std::string &text, const char delimi
 
 @return A new string containing the repeated substring
 */
-std::string string_repeat(std::string substring, size_t n)
+inline std::string string_repeat(std::string substring, size_t n)
 {
     std::string new_string = "";
     for (size_t i = 0; i < n; i++) new_string += substring;
@@ -738,7 +753,7 @@ ANSI sequences are ignored
 
 @return The centered string
 */
-std::string center(std::string text, size_t width = terminal_width)
+inline std::string center(std::string text, size_t width = terminal_width)
 {
     // Check lenght
     if (string_length(text) >= width) return text;
@@ -758,7 +773,7 @@ std::string center(std::string text, size_t width = terminal_width)
 
 @return true if the char is found, otherwise false
 */
-bool char_in(char chr, std::string in)
+inline bool char_in(char chr, std::string in)
 {
     bool contains = false;
 
@@ -777,7 +792,7 @@ bool char_in(char chr, std::string in)
 @param centered If the title should be centered in the terminal
 @param draw_separator If should draw a separator below the title
 */
-void print_title(std::vector<std::string> &lines, std::string color = "", bool centered = true, bool draw_separator = true)
+inline void print_title(std::vector<std::string> &lines, std::string color = "", bool centered = true, bool draw_separator = true)
 {
     clear();
 
@@ -799,7 +814,7 @@ Supports multiple lines separated by \\n
 
 @param str Footer text
 */
-void print_footer(std::string str)
+inline void print_footer(std::string str)
 {
     std::vector<std::string> lines = string_split(str, '\n');
 
@@ -858,7 +873,7 @@ std::string fancy_number(T n)
 @param str String to convert
 @return A lowercase copy of the input string
 */
-std::string string_lower(const std::string &str)
+inline std::string string_lower(const std::string &str)
 {
     std::string lower_str = str;
     std::transform(lower_str.begin(), lower_str.end(), lower_str.begin(), ::tolower);
@@ -872,7 +887,7 @@ std::string string_lower(const std::string &str)
 
 @return A uppercase copy of the input string
 */
-std::string string_upper(const std::string &str)
+inline std::string string_upper(const std::string &str)
 {
     std::string upper_str = str;
     std::transform(upper_str.begin(), upper_str.end(), upper_str.begin(), ::toupper);
@@ -886,7 +901,7 @@ std::string string_upper(const std::string &str)
 
 @return The last UTF-8 char or an empty string if the input is empty
 */
-static std::string utf8_last_char(const std::string &s)
+static inline std::string utf8_last_char(const std::string &s)
 {
     if (s.empty()) return "";
     int i = (int)s.length() - 1;
@@ -899,7 +914,7 @@ static std::string utf8_last_char(const std::string &s)
 
 @param s UTF-8 string to modify
 */
-static void utf8_pop_back(std::string &s)
+static inline void utf8_pop_back(std::string &s)
 {
     if (s.empty()) return;
     int i = (int)s.length() - 1;
@@ -914,7 +929,7 @@ static void utf8_pop_back(std::string &s)
 
 @return The removed UTF-8 char, or an empty string if the input is empty
 */
-static std::string utf8_pop_front(std::string &s)
+static inline std::string utf8_pop_front(std::string &s)
 {
     if (s.empty()) return "";
     unsigned char c = (unsigned char)s[0];
@@ -936,7 +951,7 @@ static std::string utf8_pop_front(std::string &s)
 @param length Number of characters to include in the slice
 @return A new string containing the specified slice of the input string
 */
-static std::string utf8_slice(std::string text, size_t start, size_t length)
+static inline std::string utf8_slice(std::string text, size_t start, size_t length)
 {
     for (size_t i = 0; i < start && !text.empty(); i++) utf8_pop_front(text);
 
@@ -955,7 +970,7 @@ blocks the execution until a key is pressed
 
 @param message Message displayed to the user
 */
-void wait(std::string message = "Press any key to continue")
+inline void wait(std::string message = "Press any key to continue")
 {
     cursor_move_to(1, terminal_height);
 
@@ -985,7 +1000,7 @@ void wait(std::string message = "Press any key to continue")
 @param show_input_cursor If true, shows a cursor for text input
 @param input_cursor_offset The offset of the input cursor from the left edge of the dialog
 */
-static void draw_dialog_frame(
+static inline void draw_dialog_frame(
     const std::vector<std::string> &lines,
     const std::vector<std::string> &options,
     size_t dialog_width,
@@ -1073,7 +1088,7 @@ Can operate as a selection dialog or a loading indicator
 
 @return The index of the selected option. Returns 0 in loading mode
 */
-int dialog(
+inline int dialog(
     std::string message,
     std::vector<std::string> options = {"Ok"},
     bool loading_mode = false,
@@ -1190,7 +1205,7 @@ Shows a Yes/No prompt and returns the user's choice
 
 @return true if the user selects "Yes", otherwise false
 */
-bool confirm(std::string message)
+inline bool confirm(std::string message)
 {
     std::vector<std::string> options;
     options.push_back(c_lime + "Yes" + f_clear);
@@ -1204,7 +1219,7 @@ bool confirm(std::string message)
 
 @return true if the user confirms exit, otherwise false
 */
-bool exit_program_confirm()
+inline bool exit_program_confirm()
 {
     return confirm("Exit the program?");
 }
@@ -1216,7 +1231,7 @@ After each execution the user is asked if wants to repeat the operation
 
 @param code Function/Lambda to execute
 */
-void exec_repeat(const std::function<void()> code)
+inline void exec_repeat(const std::function<void()> code)
 {
     do code(); while (confirm("Would you like to repeat?"));
 }
@@ -1266,9 +1281,11 @@ size_t exist_at(const Container &container, const T element)
 @param element Element to remove
 */
 template<typename Container, typename T>
-void wipe(Container &container, const T element)
+inline void wipe(Container &container, const T element)
 {
-    container.erase(std::find(container.begin(), container.end(), element));
+    auto it = std::find(container.begin(), container.end(), element);
+    if (it != container.end())
+        container.erase(it);
 }
 
 /*
@@ -1311,7 +1328,7 @@ Supports cursor navigation, UTF-8 input, pasword masking, default text and cente
 
 @return The entered text
 */
-std::string input(   
+inline std::string input(
     std::string prompt       = "",
     std::string prompt_color = "",
     std::string input_color  = "",
@@ -1523,7 +1540,7 @@ Supports signed integers, floats, and scientific notation using 'e' or 'E'
 
 @return true if the string is a valid numeric representation, otherwise false
 */
-bool is_valid_number(
+inline bool is_valid_number(
     std::string str,
     bool allow_exponent = true,
     bool allow_decimals = true,
@@ -1619,7 +1636,7 @@ bool is_valid_number(
 
 @return true if the string is a valid binary representation, otherwise false
 */
-bool is_valid_binary(std::string str, bool allow_prefix = true)
+inline bool is_valid_binary(std::string str, bool allow_prefix = true)
 {
     if (str.empty()) return false;
 
@@ -1645,7 +1662,7 @@ bool is_valid_binary(std::string str, bool allow_prefix = true)
 
 @return true if the string is a valid octal representation, otherwise false
 */
-bool is_valid_octal(std::string str, bool allow_prefix = true)
+inline bool is_valid_octal(std::string str, bool allow_prefix = true)
 {
     if (str.empty()) return false;
 
@@ -1671,7 +1688,7 @@ bool is_valid_octal(std::string str, bool allow_prefix = true)
 
 @return true if the string is a valid hexadecimal representation, otherwise false
 */
-bool is_valid_hexadecimal(std::string str, bool allow_prefix = true)
+inline bool is_valid_hexadecimal(std::string str, bool allow_prefix = true)
 {
     if (str.empty()) return false;
 
@@ -1865,7 +1882,7 @@ std::string format_number(
 
 @return true if is even, false is odd
 */
-bool is_even(int n) { return !(n % 2); }
+inline bool is_even(int n) { return !(n % 2); }
 
 /*
 @brief Checks if a number is a prime number
@@ -1874,7 +1891,7 @@ bool is_even(int n) { return !(n % 2); }
 
 @return true if is prime, otherwise false
 */
-bool is_prime(int n)
+inline bool is_prime(int n)
 {
     if (n < 2) return false;
     if (n == 2) return true;
