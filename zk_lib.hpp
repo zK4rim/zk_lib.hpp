@@ -1505,10 +1505,17 @@ Supports signed integers, floats, and scientific notation using 'e' or 'E'
 
 @param str String to validate
 @param allow_exponent If true, allows scientific notation (default: true)
+@param allow_decimals If true, allows decimal points (default: true)
+@param allow_signs If true, allows '+' and '-' signs (default: true)
 
 @return true if the string is a valid numeric representation, otherwise false
 */
-bool is_valid_number(std::string str, bool allow_exponent = true)
+bool is_valid_number(
+    std::string str,
+    bool allow_exponent = true,
+    bool allow_decimals = true,
+    bool allow_signs = true
+)
 {
     // Init flags
 
@@ -1528,6 +1535,14 @@ bool is_valid_number(std::string str, bool allow_exponent = true)
         // If there is an exponent but the allow_exponent flag is false, return false
 
         if (!allow_exponent && char_in(chr, "eE")) return false;
+
+        // If there is a dot but the allow_decimals flag is false, return false
+
+        if (!allow_decimals && chr == '.') return false;
+
+        // If there is a sign but the allow_signs flag is false, return false
+
+        if (!allow_signs && char_in(chr, "-+")) return false;
 
         // If there is something that isn't a math char return, false
         
