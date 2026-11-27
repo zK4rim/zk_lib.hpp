@@ -10,9 +10,15 @@
 #include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <charconv>
+#include <cstdlib>
 #include <functional>
+#include <limits>
 #include <memory>
+#include <stdexcept>
+#include <system_error>
 #include <ctime>
+#include <type_traits>
 #include <vector>
 #include <stack>
 #include <chrono>
@@ -1684,6 +1690,77 @@ bool is_valid_hexadecimal(std::string str, bool allow_prefix = true)
 }
 
 /*
+@brief Converts a string to a numeric value
+
+@tparam T Target numeric type
+@param str String to convert
+
+@return The converted numeric value; out-of-range integers are clamped and
+        floating-point overflow or underflow becomes infinity or signed zero
+
+@throws std::invalid_argument If str is empty or is not a complete number
+*/
+template<typename T>
+T to_number(const std::string &str)
+{
+    static_assert(std::is_arithmetic_v<T> && !std::is_same_v<T, bool>,
+        "to_number requires a non-bool arithmetic type");
+
+    if (str.empty())
+        throw std::invalid_argument("to_number: empty string");
+
+    const char *first = str.data();
+    const char *last = first + str.size();
+    if (*first == '+')
+        ++first;
+    if (first == last)
+        throw std::invalid_argument("to_number: invalid number");
+
+    T value{};
+    const auto result = std::from_chars(first, last, value);
+    if (result.ec == std::errc{} && result.ptr == last)
+        return value;
+
+    if (result.ec != std::errc::result_out_of_range || result.ptr != last)
+        throw std::invalid_argument("to_number: invalid number");
+
+    if constexpr (std::is_integral_v<T>)
+    {
+        const auto &limits = std::numeric_limits<T>{};
+        if constexpr (std::is_signed_v<T>)
+            return *first == '-' ? limits.min() : limits.max();
+        else
+            return limits.max();
+    }
+    else
+    {
+        char *parsed_end = nullptr;
+        const long double wide_value = std::strtold(str.c_str(), &parsed_end);
+        if (parsed_end != last)
+            throw std::invalid_argument("to_number: invalid number");
+
+        if (!std::isfinite(wide_value) ||
+            std::fabs(wide_value) > std::numeric_limits<T>::max())
+        {
+            if constexpr (std::numeric_limits<T>::has_infinity)
+                return std::copysign(std::numeric_limits<T>::infinity(), wide_value);
+            else
+                return std::signbit(wide_value)
+                    ? -std::numeric_limits<T>::max()
+                    : std::numeric_limits<T>::max();
+        }
+
+        constexpr T min_positive = std::numeric_limits<T>::has_denorm == std::denorm_present
+            ? std::numeric_limits<T>::denorm_min()
+            : std::numeric_limits<T>::min();
+        if (std::fabs(wide_value) < min_positive)
+            return std::copysign(T{0}, wide_value);
+
+        return static_cast<T>(wide_value);
+    }
+}
+
+/*
 @brief Formats a number with specified precision, separators, and optional fancy styling
 
 @param n Number to format
@@ -1692,7 +1769,8 @@ bool is_valid_hexadecimal(std::string str, bool allow_prefix = true)
 @param thousands_separator Character to use as the thousands separator (default: ',')
 @param fancy If true, applies a fancy Unicode style to the number (default: false)
 
-@return A formatted string representation of the number
+@return A formatted string representation of the number; infinity and NaN are
+        returned as "inf", "-inf", and "nan"
 */
 template<typename T>
 std::string format_number(
@@ -1710,7 +1788,7 @@ std::string format_number(
     if constexpr (std::is_same_v<T, std::string>)
     {
         if (!is_valid_number(n)) return n;
-        value = std::stold(n);
+        value = to_number<long double>(n);
     }
     else if constexpr (std::is_integral_v<T>)
     {
@@ -1723,9 +1801,13 @@ std::string format_number(
     else
         throw std::invalid_argument("Unsupported type for format_number");
 
-    // Check if the value is finite
     if (!std::isfinite(value))
-        throw std::invalid_argument("format_number requires a finite number");
+    {
+        std::string special_value = std::isnan(value)
+            ? "nan"
+            : (std::signbit(value) ? "-inf" : "inf");
+        return fancy ? fancy_number(special_value) : special_value;
+    }
 
     // Ensure precision is non-negative
     if (precision < 0) precision = 0;
@@ -1775,30 +1857,6 @@ std::string format_number(
     if (fancy) return fancy_number(formatted_number);
     return formatted_number;
 }
-
-#define SPECIALIZE_TO_NUMBER(Type, Func) \
-    template<> inline Type to_number<Type>(const std::string &str) { return Func(str); }
-
-/*
-@brief Converts a string to a numeric value
-
-@tparam T Target numeric type
-@param str String to convert
-
-@return The converted numeric value
-*/
-template<typename T>
-T to_number(const std::string &str);
-
-SPECIALIZE_TO_NUMBER(int, std::stoi)
-SPECIALIZE_TO_NUMBER(long, std::stol)
-SPECIALIZE_TO_NUMBER(long long, std::stoll)
-SPECIALIZE_TO_NUMBER(unsigned long, std::stoul)
-SPECIALIZE_TO_NUMBER(unsigned long long, std::stoull)
-SPECIALIZE_TO_NUMBER(float, std::stof)
-SPECIALIZE_TO_NUMBER(double, std::stod)
-
-#undef SPECIALIZE_TO_NUMBER
 
 /*
 @brief Checks if a number is even

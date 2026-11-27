@@ -298,8 +298,8 @@ zk::print_title({
 * `is_valid_binary(str, allow_prefix = true)`: validates binary digits (`0` and `1`). When enabled, the optional `0b` or `0B` prefix is accepted.
 * `is_valid_octal(str, allow_prefix = true)`: validates octal digits (`0`-`7`). When enabled, the optional `0o` or `0O` prefix is accepted.
 * `is_valid_hexadecimal(str, allow_prefix = true)`: validates hexadecimal digits (`0`-`9`, `a`-`f`, `A`-`F`). When enabled, the optional `0x` or `0X` prefix is accepted.
-* `format_number(n, precision = 2, decimal_separator = '.', thousands_separator = ',', fancy = false)`: rounds and formats an integral, floating-point, or numeric string value, inserting custom decimal and thousands separators. Set `fancy` to use Unicode seven-segment characters.
-* `to_number<T>(str)`: converts a string to `int`, `long`, `long long`, `unsigned long`, `unsigned long long`, `float`, or `double`.
+* `format_number(n, precision = 2, decimal_separator = '.', thousands_separator = ',', fancy = false)`: rounds and formats an integral, floating-point, or numeric string value, inserting custom decimal and thousands separators. Numeric strings may use scientific notation; overflow is represented as `inf` or `-inf`, and non-finite numeric inputs as `inf`, `-inf`, or `nan`. Set `fancy` to use Unicode seven-segment characters.
+* `to_number<T>(str)`: converts a complete numeric string to an arithmetic type (except `bool`) using `std::from_chars`. Invalid strings throw `std::invalid_argument`; integer overflow is clamped to the target type's limits, while floating-point overflow returns infinity (or the largest finite value if infinity is unavailable).
 * `is_even(n)` / `is_prime(n)`: check basic integer properties.
 * `fancy_number(n)`: converts digits to Unicode seven-segment characters.
 
@@ -424,16 +424,16 @@ The [`examples/`](examples/) directory contains standalone programs that demonst
 * [`games.cpp`](examples/games.cpp): a menu-driven collection of Tic-Tac-Toe, Minesweeper, and Wordle.
 * [`showcase.cpp`](examples/showcase.cpp): a full feature showcase covering menus, widgets, dialogs, colors, strings, and math utilities.
 
-The examples require a C++17-compatible compiler. From the repository root, build and run them with:
+The examples require a C++20-compatible compiler. From the repository root, build and run them with:
 
 ```sh
-g++ examples/basic_menu.cpp -o basic_menu
+g++ -std=c++20 examples/basic_menu.cpp -o basic_menu
 ./basic_menu
 
-g++ examples/games.cpp -o games
+g++ -std=c++20 examples/games.cpp -o games
 ./games
 
-g++ examples/showcase.cpp -o showcase
+g++ -std=c++20 examples/showcase.cpp -o showcase
 ./showcase
 ```
 
