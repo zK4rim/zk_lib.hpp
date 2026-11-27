@@ -755,7 +755,7 @@ bool char_in(char chr, std::string in)
     bool contains = false;
 
     // Iterate throught each char in "in" looking for "chr"
-    for (auto &&c : in)
+    for (const auto &c : in)
         if (c == chr) { contains = true; break; }
     
     return contains;
@@ -1594,6 +1594,84 @@ bool is_valid_number(
     if (!exp_has_digits && !can_use_exp) return false;
     
     // If this point is reached, it means there are no issues, return true
+
+    return true;
+}
+
+/*
+@brief Checks if a string is a valid binary number
+
+@param str String to validate
+@param allow_prefix If true, allows the "0b" or "0B" prefix (default: true)
+
+@return true if the string is a valid binary representation, otherwise false
+*/
+bool is_valid_binary(std::string str, bool allow_prefix = true)
+{
+    if (str.empty()) return false;
+
+    size_t start = 0;
+
+    if (allow_prefix && (str.starts_with("0b") || str.starts_with("0B")))
+    {
+        if (str.size() < 3) return false;
+        start = 2;
+    }
+
+    for (size_t i = start; i < str.size(); ++i)
+        if (!char_in(str[i], "01")) return false;
+
+    return true;
+}
+
+/*
+@brief Checks if a string is a valid octal number
+
+@param str String to validate
+@param allow_prefix If true, allows the "0o" or "0O" prefix (default: true)
+
+@return true if the string is a valid octal representation, otherwise false
+*/
+bool is_valid_octal(std::string str, bool allow_prefix = true)
+{
+    if (str.empty()) return false;
+
+    size_t start = 0;
+
+    if (allow_prefix && (str.starts_with("0o") || str.starts_with("0O")))
+    {
+        if (str.size() < 3) return false;
+        start = 2;
+    }
+
+    for (size_t i = start; i < str.size(); ++i)
+        if (!char_in(str[i], "01234567")) return false;
+
+    return true;
+}
+
+/*
+@brief Checks if a string is a valid hexadecimal number
+
+@param str String to validate
+@param allow_prefix If true, allows the "0x" or "0X" prefix (default: true)
+
+@return true if the string is a valid hexadecimal representation, otherwise false
+*/
+bool is_valid_hexadecimal(std::string str, bool allow_prefix = true)
+{
+    if (str.empty()) return false;
+
+    size_t start = 0;
+
+    if (allow_prefix && (str.starts_with("0x") || str.starts_with("0X")))
+    {
+        if (str.size() < 3) return false;
+        start = 2;
+    }
+
+    for (size_t i = start; i < str.size(); ++i)
+        if (!char_in(str[i], "0123456789abcdefABCDEF")) return false;
 
     return true;
 }
