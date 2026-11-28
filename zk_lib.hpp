@@ -117,15 +117,19 @@ private:
     std::chrono::milliseconds duration;
     std::chrono::steady_clock::time_point start;
 
+    bool keep_diff = true;
+
 public:
     /*
     @brief Constructs a timer with a specified duration
     @param ms The duration in milliseconds
     */
-    timer(int ms)
+    timer(int ms, bool keep_diff = true)
     {
         this->duration = std::chrono::milliseconds(ms);
         start = std::chrono::steady_clock::now();
+
+        this->keep_diff = keep_diff;
     }
 
     /*
@@ -137,7 +141,9 @@ public:
 
         if ((now - start) >= duration)
         {
-            start += duration;
+            if (keep_diff) start += duration;
+            else start = now;
+            
             return true;
         }
         
