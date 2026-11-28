@@ -65,7 +65,7 @@ while (running)
 }
 ```
 
-* `timer(int ms)`: starts a timer with the specified duration in milliseconds.
+* `timer(int ms, bool keep_diff = true)`: starts a timer with the specified duration in milliseconds. By default, `keep_diff` preserves catch-up intervals after delayed calls. Set it to `false` to measure each interval from the moment `time_reached()` confirms that elapsed time.
 * `time_reached()`: returns `true` when the duration has elapsed, then advances the timer by one interval. Repeated calls can catch up if multiple intervals elapsed.
 * `reset()`: restarts the timer from the current time.
 

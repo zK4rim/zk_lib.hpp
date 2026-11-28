@@ -2517,7 +2517,7 @@ private:
             if (has_focusable_widgets() && !widgets[selected_option]->is_focusable())
                 move_selection(1);
             
-            timer anim_timer(100);
+            timer anim_timer(100, false);
             animation_i = 0;
 
             while (executing)
